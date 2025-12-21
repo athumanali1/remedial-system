@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Library Dashboard{% endblock %}
+
+{% block content %}
+<div style="max-width:980px; margin:18px auto;">
+  <h1 style="margin-bottom:6px;">Welcome, {{ user.get_full_name|default:user.username }} 👋</h1>
+  <p style="color:#555; margin-top:0;">This is your library management dashboard — quick actions and overview.</p>
+
+  <div style="display:flex; gap:18px; margin-top:18px;">
+    <div style="flex:1; padding:12px; border-radius:8px; background:#f8fafc; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+      <h3 style="margin-top:0;">Catalog</h3>
+      <ul>
+        <li><a href="{% url 'admin:library_book_changelist' %}">Books</a></li>
+        <li><a href="{% url 'admin:lessons_subject_changelist' %}">Subjects (Categories)</a></li>
+      </ul>
+    </div>
+
+    <div style="width:320px; padding:12px; border-radius:8px; background:#fff9eb; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+      <h3 style="margin-top:0;">Loans</h3>
+      <ul>
+        <li><a href="{% url 'admin:library_borrowrecord_changelist' %}">Borrow records</a></li>
+        <li><a href="{% url 'library:book_list' %}">Public catalog</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;">
+    <h3 style="margin-bottom:8px;">Quick actions</h3>
+    <a class="button" href="{% url 'admin:library_book_add' %}">Add new book</a>
+    <a class="button" href="{% url 'admin:library_borrowrecord_add' %}" style="margin-left:8px;">Record loan</a>
+  </div>
+
+  <hr style="margin:18px 0;"/>
+  <p style="color:#666; font-size:0.95em;">If you need more access (users, groups), contact an administrator.</p>
+</div>
+{% endblock %}

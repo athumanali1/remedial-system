@@ -1,0 +1,133 @@
+{% extends "lessons/base.html" %}
+{% block title %}Generate Week Lessons{% endblock %}
+{% block content %}
+
+<style>
+  .gen-container {
+    max-width: 480px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .gen-container h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  .gen-container label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .gen-container select {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    margin-bottom: 12px;
+  }
+  .gen-container button[type="submit"] {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .gen-container button[type="submit"]:hover {
+    background-color: #1d4ed8;
+  }
+
+  .gen-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .gen-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 22px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .gen-modal h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+  .gen-modal p {
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  .gen-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .gen-btn {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .gen-btn-primary {
+    background-color: #2563eb;
+    color: #ffffff;
+  }
+  .gen-btn-primary:hover {
+    background-color: #1d4ed8;
+  }
+  .gen-btn-secondary {
+    background-color: #e5e7eb;
+    color: #111827;
+  }
+  .gen-btn-secondary:hover {
+    background-color: #d1d5db;
+  }
+</style>
+
+<div class="gen-container">
+  <h2>Generate Week Lessons</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="week">Select Week</label>
+    <select id="week" name="week" required>
+      {% for w in weeks %}
+        <option value="{{ w.id }}" {% if selected_week and selected_week.id == w.id %}selected{% endif %}>
+          Week {{ w.number }} ({{ w.start_date }} - {{ w.end_date }})
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit">Generate</button>
+  </form>
+</div>
+
+{% if created_att %}
+  <div class="gen-modal-backdrop">
+    <div class="gen-modal">
+      <h3>Week lessons created</h3>
+      <p>
+        {{ created_att }} lessons created for
+        {% if selected_week %}Week {{ selected_week.number }}{% else %}the selected week{% endif %}
+        successfully.
+      </p>
+      <div class="gen-modal-actions">
+        <a href="{% url 'deputy:deputy_normal_stats' %}" class="gen-btn gen-btn-primary">View lesson stats</a>
+        <a href="{% url 'deputy:index' %}" class="gen-btn gen-btn-secondary">Go to home</a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

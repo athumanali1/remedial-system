@@ -7,16 +7,61 @@
     <link rel="stylesheet" href="{% static 'lessons/css/dashboard.css' %}">
 </head>
 <body>
-    <nav>
-        <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
-     
-        <a href="{% url 'logout' %}">Logout</a>
+        {% if request.GET.print == '1' %}
+        <style>
+            nav, footer, .logout-btn, .print-btn { display: none !important; }
+            .content { margin-top: 0 !important; }
+        </style>
+        {% endif %}
+
+        <nav>
+        <a href="{% url 'website:home' %}" style="display:inline-block; margin-right:12px;">
+            <img src="/media/LOGO/school%20badge.jpg" alt="Logo" style="height:32px; vertical-align:middle;">
+        </a>
+
+        {% if request.user.is_authenticated %}
+            {% with current_view=request.resolver_match.url_name %}
+
+                {# ---------------- Teacher (non-staff) navigation ---------------- #}
+                {% if not request.user.is_staff %}
+                    <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
+                    <a href="{% url 'teacher_dashboard' %}?tab=remedial" style="margin-left:12px;">Remedial</a>
+                    <a href="{% url 'teacher_dashboard' %}?tab=normal" style="margin-left:8px;">Normal</a>
+                    <a href="{% url 'teacher_normal_timetable' %}"
+                       style="margin-left:8px;"
+                       class="{% if current_view == 'teacher_normal_timetable' %}nav-active{% endif %}">
+                        View Timetable
+                    </a>
+
+                {# ---------------- Deputy tools (specific deputy account) ---------------- #}
+                {% elif request.user.username|lower == 'deputy1' %}
+                    <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
+                    <a href="{% url 'timetable_builder' %}" style="margin-left:12px;">Timetable Builder</a>
+                    <a href="{% url 'generate_week_lessons' %}" style="margin-left:12px;">Generate Week Lessons</a>
+
+                {# ---------------- Superuser remedial admin tools ---------------- #}
+                {% elif request.user.is_superuser %}
+                    <span style="margin-left:24px; font-weight:bold;">Remedial Admin:</span>
+                    <a href="{% url 'remedial_timetable_builder' %}" style="margin-left:8px;">Remedial Builder</a>
+                    <a href="{% url 'remedial_timetable_master' %}" style="margin-left:8px;">Remedial Master</a>
+                    <a href="{% url 'generate_remedial_week_lessons' %}" style="margin-left:8px;">Generate Remedial Week</a>
+
+                {# ---------------- Other staff (e.g. library) ---------------- #}
+                {% else %}
+                {% endif %}
+
+            {% endwith %}
+
+            <a href="{% url 'logout' %}" class="logout-btn nav-logout">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+        {% endif %}
     </nav>
 
     <div class="content">
         {% block content %}{% endblock %}
     </div>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-k6RqeWeci5ZR/Lv4MR0sA0FfDOM4B+u0nR+Zf9VHgVv+uU1l/1L8zS1lB5QJ6vZ6VfJ3Fb6FAoP7TfZAGlqRQA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 </body>
 </html>

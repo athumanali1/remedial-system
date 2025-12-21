@@ -1,0 +1,77 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+    @media print {
+      .breadcrumbs, .module .print-btn, .admin-inline-filters, .submit-row { display: none !important; }
+      body { background: #ffffff; }
+    }
+    .print-container { margin: 20px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .summary-grid .cell { border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px; background: #f9fafb; }
+    .summary-grid .cell strong { display: block; margin-bottom: 4px; font-size: 0.9rem; color: #374151; }
+    table.results { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    table.results th, table.results td { border: 1px solid #e5e7eb; padding: 6px 8px; font-size: 0.9rem; }
+    table.results th { background: #f3f4f6; text-align: left; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="print-container">
+  <h1>💰 Payments Summary</h1>
+  {% if selected_class_obj %}
+    <p><strong>Class:</strong> {{ selected_class_obj.name }}</p>
+  {% else %}
+    <p><strong>Class:</strong> All Classes</p>
+  {% endif %}
+  <p><strong>Generated on:</strong> {{ now|default:None }}</p>
+
+  <hr>
+
+  <h2>📊 Global Totals</h2>
+  <div class="summary-grid">
+    <div class="cell"><strong>Total Students</strong><div>{{ total_students }}</div></div>
+    <div class="cell"><strong>Fully Paid</strong><div>{{ fully_paid }}</div></div>
+    <div class="cell"><strong>Unpaid</strong><div>{{ unpaid }}</div></div>
+    <div class="cell"><strong>Partial</strong><div>{{ partial }}</div></div>
+    <div class="cell"><strong>Total Fees</strong><div>{{ total_fees }}</div></div>
+    <div class="cell"><strong>Total Paid</strong><div>{{ total_paid }}</div></div>
+    <div class="cell"><strong>Total Unpaid</strong><div>{{ total_unpaid }}</div></div>
+  </div>
+
+  <h2 style="margin-top:24px;">🏫 Per-Class Breakdown</h2>
+  <table class="results">
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th>Total Students</th>
+        <th>Total Fees</th>
+        <th>Total Paid</th>
+        <th>Total Unpaid</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in class_stats %}
+      <tr>
+        <td>{{ stat.name }}</td>
+        <td>{{ stat.total_students }}</td>
+        <td>{{ stat.total_fees|default:0 }}</td>
+        <td>{{ stat.total_paid|default:0 }}</td>
+        <td>{{ stat.total_fees|default:0|add:"-"|add:stat.total_paid|default:0 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No class data available.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // Optional: auto-open print dialog when the summary tab loads
+  window.addEventListener('load', function() {
+    window.print();
+  });
+</script>
+{% endblock %}

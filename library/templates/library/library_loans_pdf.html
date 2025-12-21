@@ -1,0 +1,22 @@
+{% extends "lessons/base.html" %}
+{% block title %}Library Loans Report{% endblock %}
+{% block content %}
+<style> body{font-family:sans-serif} table{width:100%;border-collapse:collapse} th,td{border:1px solid #ccc;padding:6px} th{background:#f2f2f2}</style>
+<h1>Library Loans Report</h1>
+{% if student %}<p>Student: {{ student.first_name }} {{ student.last_name }} ({{ student.admission_number }})</p>{% endif %}
+<table>
+  <thead><tr><th>Date Borrowed</th><th>Book</th><th>Status</th><th>Expected Return</th></tr></thead>
+  <tbody>
+  {% for r in records %}
+    <tr>
+      <td>{{ r.date_borrowed }}</td>
+      <td>{{ r.book.title }}</td>
+      <td>{{ r.status }}</td>
+      <td>{{ r.expected_return_date }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4">No records</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

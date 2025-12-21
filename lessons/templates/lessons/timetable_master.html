@@ -1,0 +1,47 @@
+{% extends "lessons/base.html" %}
+{% load lessons_extras %}
+{% block title %}Master Timetable{% endblock %}
+{% block content %}
+<h2>Master Timetable</h2>
+
+{% for d in days %}
+  <h3>{{ d }}</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Class / Time</th>
+        {% for st, et in slots %}
+          <th>{{ st|time:"H:i" }} - {{ et|time:"H:i" }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for cg in class_groups %}
+        <tr>
+          <td>{{ cg.name }}</td>
+          {% for st, et in slots %}
+            {% with st_key=st|time:"Hi" et_key=et|time:"Hi" %}
+              {% with key=cg.id|stringformat:"s"|add:"_"|add:d|add:"_"|add:st_key|add:"_"|add:et_key %}
+                {% with cells=grid|dict_get:key %}
+                  <td>
+                    {% if cells and cells|length %}
+                      {% for cell in cells %}
+                        {{ cell.subject_fk.name }} — {{ cell.teacher }}{% if not forloop.last %}<br/>{% endif %}
+                      {% endfor %}
+                    {% else %}
+                      -- Empty --
+                    {% endif %}
+                  </td>
+                {% endwith %}
+              {% endwith %}
+            {% endwith %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <hr/>
+{% endfor %}
+
+<p><a href="{% url 'timetable_builder' %}">Go to Timetable Builder (editor)</a></p>
+{% endblock %}

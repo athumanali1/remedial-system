@@ -1,0 +1,129 @@
+{% extends "lessons/base.html" %}
+{% load static %}
+
+{% block title %}Normal Lessons - {{ teacher.user.get_full_name|default:teacher.user.username }}{% endblock %}
+
+{% block content %}
+<h1>Normal Lessons - {{ teacher.user.get_full_name|default:teacher.user.username }}</h1>
+
+<div style="margin-bottom:10px; display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+  <button type="button" class="print-btn">Print / Download</button>
+</div>
+
+<form method="get" style="margin-bottom: 8px;">
+  <label>Week:</label>
+  <select name="week">
+    <option value="">All</option>
+    {% for w in weeks %}
+      <option value="{{ w.id }}" {% if selected_week == w.id %}selected{% endif %}>
+        Week {{ w.number }} ({{ w.start_date }} - {{ w.end_date }})
+      </option>
+    {% endfor %}
+  </select>
+
+  <label style="margin-left: 8px;">Day:</label>
+  <select name="normal_day">
+    <option value="">All</option>
+    <option value="Mon" {% if normal_selected_day == 'Mon' %}selected{% endif %}>Monday</option>
+    <option value="Tue" {% if normal_selected_day == 'Tue' %}selected{% endif %}>Tuesday</option>
+    <option value="Wed" {% if normal_selected_day == 'Wed' %}selected{% endif %}>Wednesday</option>
+    <option value="Thu" {% if normal_selected_day == 'Thu' %}selected{% endif %}>Thursday</option>
+    <option value="Fri" {% if normal_selected_day == 'Fri' %}selected{% endif %}>Friday</option>
+  </select>
+
+  <label style="margin-left: 8px;">Date:</label>
+  <input type="date" name="normal_date" value="{{ normal_selected_date }}" />
+
+  <button type="submit">Apply</button>
+</form>
+
+{% if request.GET.print == '1' %}
+<style>
+  /* Hide interactive controls when printing */
+  form, .print-btn, a[href] { display: none !important; }
+  .admin-scroll { overflow: visible !important; }
+  @media print {
+    .admin-scroll { overflow: visible !important; }
+    table { page-break-inside: avoid; }
+  }
+</style>
+<script>
+  window.addEventListener('load', function(){
+    setTimeout(function(){ window.print(); }, 250);
+  });
+</script>
+{% else %}
+<script>
+  (function(){
+    var btns = document.querySelectorAll('.print-btn');
+    if(!btns || !btns.length) return;
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        try{
+          var url = window.location.href;
+          url += (url.indexOf('?') === -1) ? '?print=1' : '&print=1';
+          window.open(url, '_blank');
+        }catch(e){ console.error(e); }
+      });
+    });
+  })();
+</script>
+{% endif %}
+
+<!-- Summary -->
+<div class="cards-container">
+  <div class="card"><h3>Total</h3><p>{{ total }}</p></div>
+  <div class="card"><h3>Attended</h3><p>{{ attended }}</p></div>
+  <div class="card"><h3>Not Attended</h3><p>{{ not_attended }}</p></div>
+  <div class="card"><h3>Pending</h3><p>{{ pending }}</p></div>
+</div>
+
+<div class="admin-scroll scroll-x scroll-viewport">
+<table>
+  <thead>
+    <tr>
+      <th>Day</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Class(es)</th>
+      <th>Subject</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      <tr>
+        <td>{{ row.day }}</td>
+        <td>{{ row.start|time:"H:i" }}</td>
+        <td>{{ row.end|time:"H:i" }}</td>
+        <td>{{ row.class_label }}</td>
+        <td>{{ row.subject_name }}</td>
+        <td>
+          <form method="post" style="display:inline;">
+            {% csrf_token %}
+            {% for sid in row.slot_ids %}
+              <input type="hidden" name="slot_ids" value="{{ sid }}" />
+            {% endfor %}
+            <input type="hidden" name="normal_day" value="{{ normal_selected_day }}" />
+            <input type="hidden" name="normal_date" value="{{ normal_selected_date }}" />
+            {% if selected_week %}
+              <input type="hidden" name="week" value="{{ selected_week }}" />
+            {% endif %}
+            <select name="status" onchange="this.form.submit()">
+              <option value="Pending" {% if row.status == 'Pending' %}selected{% endif %}>Pending</option>
+              <option value="Attended" {% if row.status == 'Attended' %}selected{% endif %}>Attended</option>
+              <option value="Not Attended" {% if row.status == 'Not Attended' %}selected{% endif %}>Not Attended</option>
+            </select>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">No normal lessons found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<p style="margin-top:16px;"><a href="{% url 'deputy:deputy_normal_stats' %}?teacher={{ teacher.id }}&week={{ selected_week }}&normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">← Back to summary</a></p>
+
+{% endblock %}

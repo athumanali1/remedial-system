@@ -1,0 +1,216 @@
+{% extends "website/base.html" %}
+
+{% block title %}Home - Lukore Secondary School{% endblock %}
+
+{% block content %}
+  <div class="py-4" style="background-color: #f5f8fc;">
+    <div class="container">
+
+    {# Event popup modal: shows most recent upcoming event once on page load #}
+    {% if events %}
+    <div class="modal fade" id="eventPopupModal" tabindex="-1" aria-labelledby="eventPopupLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white py-2">
+            <h5 class="modal-title small" id="eventPopupLabel">Latest Upcoming Event</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body small">
+            {% with ev=events.0 %}
+              <h6 class="fw-bold mb-1">{{ ev.title }}</h6>
+              {% if ev.date %}
+                <p class="mb-1 text-muted">{{ ev.date|date:"d M Y" }}</p>
+              {% endif %}
+              {% if ev.location %}
+                <p class="mb-1 text-muted">{{ ev.location }}</p>
+              {% endif %}
+              {% if ev.description %}
+                <p class="mb-0">{{ ev.description }}</p>
+              {% endif %}
+            {% endwith %}
+          </div>
+          <div class="modal-footer py-2">
+            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Top row: badge + Upcoming Events with background image fade -->
+    <div class="row align-items-center mb-4" style="
+         background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(245, 248, 252, 0.95)),
+                           url('/media/LOGO/school%20badge.jpg');
+         background-size: cover;
+         background-position: left center;
+         border-radius: 0.75rem;
+         padding: 1.5rem 1rem;
+       ">
+
+      <!-- Badge on the left -->
+      <div class="col-md-5 mb-3 mb-md-0 text-center text-md-start">
+        <div class="d-inline-block p-3 bg-white rounded-circle shadow-sm">
+          <img src="/media/LOGO/school%20badge.jpg" alt="Lukore Secondary School Badge" class="img-fluid" style="max-height: 120px;">
+        </div>
+      </div>
+
+      <!-- Upcoming Events on the right -->
+      <div class="col-md-7 col-lg-6">
+        <div class="card border-0 shadow-sm" style="background-color: #ffffff;">
+
+          <div class="card-header bg-primary text-white py-2">
+            <h2 class="h6 mb-0 text-center text-uppercase">Upcoming Events</h2>
+
+          </div>
+          <div class="card-body p-3" style="max-height: 260px; overflow-y: auto;">
+
+            {% if events %}
+              <ul class="list-unstyled mb-0 small">
+                {% for event in events %}
+                  <li class="mb-3 border-bottom pb-2">
+                    <strong>{{ event.title }}</strong><br>
+                    {% if event.date %}
+                      <span class="text-muted d-block">
+                        {{ event.date|date:"d M Y" }}
+                      </span>
+                    {% endif %}
+                    {% if event.location %}
+                      <span class="text-muted d-block">
+                        {{ event.location }}
+                      </span>
+                    {% endif %}
+                    {% if event.description %}
+                      <span class="d-block mt-1">
+                        {{ event.description }}
+                      </span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mb-0 text-muted small text-center">
+                No upcoming events have been added yet.
+              </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motto as header -->
+    <div class="mb-3 text-center">
+      <p class="mb-1 text-uppercase text-muted small">Motto</p>
+      <p class="h5 mb-0 fw-bold text-primary">STRONG TO SERVE</p>
+      <p class="mb-0 small text-muted">"The school we love the most"</p>
+    </div>
+
+    <!-- Prayer / Mission / Anthem cards -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3 mb-md-0">
+        <div class="card h-100 border-0" style="background-color: #0d6efd; color: #ffffff;">
+          <div class="card-body">
+            <h2 class="h6 mb-2">School Prayer</h2>
+            <p class="mb-0 small">
+              Have in Thy keeping, O Lord, our God, this school, that its work may be thorough
+              and its life joyful; that from it may go out, strong in body, mind and character,
+              men who in Thy name and power will serve their fellows faithfully,
+              through Jesus Christ our Lord. Amen.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3 mb-md-0">
+        <div class="card h-100 border-0" style="background-color: #0d6efd; color: #ffffff;">
+          <div class="card-body">
+            <h2 class="h6 mb-2">Our Mission</h2>
+            <p class="mb-0 small">
+              To graduate students who are strong in body, mind and character,
+              to serve their fellows faithfully in Africa and beyond.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-0" style="background-color: #0d6efd; color: #ffffff;">
+          <div class="card-body">
+            <h2 class="h6 mb-2">School Anthem</h2>
+            <p class="mb-0 small">
+              Lord while for all mankind we pray,<br>
+              Of every clime and coast,<br>
+              Oh hear us for our native school,<br>
+              The school we love the most. (x3)
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Who We Are -->
+    <div class="row mb-4">
+      <div class="col-md-8 mx-auto">
+        <div class="card h-100 border-0" style="background-color: #ffffff;">
+          <div class="card-body">
+            <h2 class="h6 text-uppercase text-muted mb-2">Who We Are</h2>
+            <p class="mb-1 small fw-bold">Brief history of Lukore Secondary School</p>
+            <p class="mb-0 small text-muted">
+              Lukore Secondary School is a public mixed day and boarding school serving the
+              Lukore community along the Coast of Kenya. Established to provide quality
+              secondary education to learners from the surrounding villages and beyond, the
+              school combines strong academics with close guidance and a calm learning
+              environment. Over the years Lukore Secondary has continued to grow in
+              enrolment, facilities and achievement, while remaining rooted in Christian
+              values and community service.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA band -->
+    <section class="py-3 px-3 px-md-4 mb-0 bg-primary text-white rounded-3">
+
+      <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
+        <div class="mb-2 mb-md-0">
+          <h2 class="h6 mb-1">Visit or contact Lukore Secondary School</h2>
+          <p class="mb-0 small">
+            We welcome parents, guardians and partners to engage with us about our
+            programmes, performance and life at Lukore.
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'website:contact' %}" class="btn btn-outline-light btn-sm me-2 mb-1">Contact us</a>
+          <a href="{% url 'website:school' %}" class="btn btn-light btn-sm mb-1">Explore the school</a>
+          <a href="{% url 'website:staff_portal' %}" class="btn btn-secondary btn-sm mb-1">Staff portal</a>
+        </div>
+      </div>
+    </section>
+    </div>
+  </div>
+
+  {% if events %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        var modalEl = document.getElementById('eventPopupModal');
+        if (modalEl && window.bootstrap) {
+          // Do not show again in this browser session once dismissed
+          if (!window.sessionStorage || !sessionStorage.getItem('lss_event_popup_closed')) {
+            var popup = new bootstrap.Modal(modalEl);
+            popup.show();
+
+            modalEl.addEventListener('hidden.bs.modal', function () {
+              try {
+                if (window.sessionStorage) {
+                  sessionStorage.setItem('lss_event_popup_closed', '1');
+                }
+              } catch (e) {}
+            });
+          }
+        }
+      } catch (e) {
+        // Fail silently if Bootstrap JS is not available
+      }
+    });
+  </script>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'lessons/css/admin.css' %}">
+<style>
+  .hero{display:flex;align-items:center;justify-content:space-between;gap:16px;background:linear-gradient(135deg,#0ea5e9 0%,#22c55e 100%);color:#fff;padding:20px 22px;border-radius:12px;margin-bottom:18px}
+  .hero h1{margin:0;font-size:22px}
+  .quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+  .qcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
+  .qcard a{display:inline-block;margin-top:8px;color:#0ea5e9;font-weight:600;text-decoration:none}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="hero">
+    <h1>Deputy Dashboard</h1>
+    <div>Normal classes administration</div>
+  </div>
+
+  <div class="quick-grid">
+    <div class="qcard">
+      <div><strong>Normal Lessons Stats</strong><div>Daily/weekly overview</div></div>
+      <a href="{% url 'deputy:deputy_normal_stats' %}">Open</a>
+    </div>
+
+    {% if request.user.is_authenticated and request.user.username|lower == 'deputy1' %}
+    <div class="qcard">
+      <div><strong>Timetable Builder</strong><div>Configure Mon–Fri schedule</div></div>
+      <a href="{% url 'timetable_builder' %}">Open</a>
+    </div>
+    <div class="qcard">
+      <div><strong>Generate Week Lessons</strong><div>Create lesson records from timetable</div></div>
+      <a href="{% url 'generate_week_lessons' %}">Open</a>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if app_list %}
+    <h2 id="app-list">Applications</h2>
+    <div class="summary-grid">
+      {% for app in app_list %}
+        <div class="cell">
+          <h3>{{ app.name }}</h3>
+          <ul>
+            {% for model in app.models %}
+              <li>
+                {% if model.admin_url %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% else %}{{ model.name }}{% endif %}
+                {% if model.add_url %} · <a href="{{ model.add_url }}">{% trans 'Add' %}</a>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

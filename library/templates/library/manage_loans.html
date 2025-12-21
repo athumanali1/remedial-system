@@ -1,0 +1,102 @@
+{% extends 'lessons/base.html' %}
+{% block title %}Assign / Return Books{% endblock %}
+{% block content %}
+
+<div style="background:#0f766e;color:white;padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <div>
+    <h1 style="margin:0;font-size:22px;">📚 Assign / Return Books</h1>
+    <p style="margin:4px 0 0;font-size:13px;">Choose a student and book to create a loan, and manage active loans below.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+    <a href="{% url 'library:dashboard' %}"
+       style="background:white;color:#0f766e;padding:4px 10px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      ← Back to Library Dashboard
+    </a>
+  </div>
+</div>
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+
+{% if request.GET.print == '1' %}
+<style>
+  /* Print preview: hide interactive controls */
+  form, input, select, button, a[href] { display: none !important; }
+  table { font-size:12px }
+</style>
+<script>window.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+{% endif %}
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+  <h2 style="margin:0 0 10px;font-size:18px;">Assign book to student</h2>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create_loan" />
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;">
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Book</label>
+        {{ loan_form.book }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Student</label>
+        {{ loan_form.student }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Expected return date</label>
+        {{ loan_form.expected_return_date }}
+      </div>
+    </div>
+    <button type="submit" style="margin-top:8px;background:#0f766e;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer;">Save loan</button>
+  </form>
+</div>
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+  <h2 style="margin:0 0 10px;font-size:18px;">Active loans</h2>
+  <form method="get" style="margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:13px;">
+    <label for="adm-search" style="color:#374151;">View loans by admission no.:</label>
+    <input id="adm-search" name="adm" type="text" placeholder="e.g. 1234" style="min-width:160px;padding:4px 6px;border:1px solid #d1d5db;border-radius:4px;" />
+    <button type="submit" style="background:#0f766e;color:white;border:none;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;">Go</button>
+  </form>
+  {% if active_loans %}
+    <div style="max-height:360px;overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#e5e7eb;">
+            <th style="padding:6px;border:1px solid #d1d5db;">Student</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Adm. No</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Class</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Book</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Date borrowed</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Expected return</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rec in active_loans %}
+            <tr>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.student.first_name }} {{ rec.student.last_name }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.student.admission_number }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.student.class_group }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.book }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.date_borrowed }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.expected_return_date }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">
+                {% if rec.status == 'lost' %}
+                  <span style="color:#b91c1c;font-weight:600;">{{ rec.get_status_display }}</span>
+                {% elif rec.status == 'borrowed' %}
+                  <span style="color:#4b5563;">{{ rec.get_status_display }}</span>
+                {% else %}
+                  {{ rec.get_status_display }}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+      <div style="margin-top:8px;">
+        <button type="button" class="print-btn" onclick="(function(){var adm=document.getElementById('adm-search');var admv=adm?adm.value:''; var url = '{% url 'library:manage_loans' %}?print=1&adm='+encodeURIComponent(admv); window.location.href = url; })()">Print / Download</button>
+        </div>
+  {% else %}
+    <p style="font-size:13px;color:#6b7280;">No active loans.</p>
+  {% endif %}
+</div>
+{% endblock %}

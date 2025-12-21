@@ -1,0 +1,155 @@
+{% extends 'lessons/base.html' %}
+{% block title %}Student Loans{% endblock %}
+{% block content %}
+
+<div style="background:#0f766e;color:white;padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <div>
+    <h1 style="margin:0;font-size:22px;">📚 Loans for {{ student.first_name }} {{ student.last_name }}</h1>
+    <p style="margin:4px 0 0;font-size:13px;">Adm: {{ student.admission_number }} | Class: {{ student.class_group }}</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+    <a href="{% url 'library:manage_loans' %}"
+       style="background:white;color:#0f766e;padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      ← Back to Assign / Return
+    </a>
+    <a href="{% url 'library:dashboard' %}"
+       style="background:#0ea5e9;color:white;padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      📚 Library Dashboard
+    </a>
+  </div>
+</div>
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+  <h2 style="margin:0 0 8px;font-size:18px;">Summary</h2>
+  <p style="margin:0;font-size:13px;">
+    Lost books: <strong>{{ lost_count }}</strong>
+    &nbsp;|&nbsp;
+    Amount to be paid: <strong>{{ total_lost_amount }}</strong>
+  </p>
+</div>
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+  <h2 style="margin:0 0 8px;font-size:18px;">Assign books to this student</h2>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="assign_books" />
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Books</label>
+        {{ assign_form.books }}
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">Use Ctrl+click to tick multiple books. List scrolls if long.</div>
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Expected return date</label>
+        {{ assign_form.expected_return_date }}
+      </div>
+    </div>
+    <button type="submit" style="margin-top:10px;background:#0f766e;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer;">Save loan(s)</button>
+  </form>
+</div>
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+  <h2 style="margin:0 0 10px;font-size:18px;">Current borrowed / lost books</h2>
+  <div style="margin:0 0 10px;text-align:right;">
+    <button type="button" class="print-btn" onclick="(function(){ var url = window.location.href; url += (url.indexOf('?') === -1) ? '?print=1' : '&print=1'; window.location.href = url; })()" style="background:#111827;color:white;padding:6px 12px;border-radius:6px;border:none;font-size:13px;font-weight:600;">Print / Download</button>
+  </div>
+  {% if request.GET.print == '1' %}
+    <style>
+      form, .print-btn, a[href] { display: none !important; }
+      table { page-break-inside: avoid; }
+      .container, nav, footer { display: none !important; }
+    </style>
+    <script>window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+  {% endif %}
+  {% if records %}
+    <div style="max-height:420px;overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#e5e7eb;">
+            <th style="padding:6px;border:1px solid #d1d5db;">Book</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Date borrowed</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Expected return</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Date returned</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Status</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Book price</th>
+            <th style="padding:6px;border:1px solid #d1d5db;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rec in records %}
+            <tr>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.book }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.date_borrowed }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.expected_return_date }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">{{ rec.date_returned }}</td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">
+                {% if rec.status == 'lost' %}
+                  <span style="color:#b91c1c;font-weight:600;">{{ rec.get_status_display }}</span>
+                {% elif rec.status == 'borrowed' %}
+                  <span style="color:#4b5563;">{{ rec.get_status_display }}</span>
+                {% else %}
+                  {{ rec.get_status_display }}
+                {% endif %}
+              </td>
+              <td style="padding:6px;border:1px solid #e5e7eb;">
+                {% if rec.book and rec.book.price %}
+                  {{ rec.book.price }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td style="padding:6px;border:1px solid #e5e7eb;white-space:nowrap;">
+                {% if rec.status == 'borrowed' %}
+                  <form method="post" style="display:inline;margin-right:4px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark_returned" />
+                    <input type="hidden" name="record_id" value="{{ rec.id }}" />
+                    <button type="submit" style="background:#16a34a;color:white;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Return</button>
+                  </form>
+                  <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark_lost" />
+                    <input type="hidden" name="record_id" value="{{ rec.id }}" />
+                    <button type="submit" style="background:#b91c1c;color:white;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Lost</button>
+                  </form>
+                {% elif rec.status == 'lost' %}
+                  <form method="post" style="display:inline;margin-right:4px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark_returned" />
+                    <input type="hidden" name="record_id" value="{{ rec.id }}" />
+                    <button type="submit" style="background:#16a34a;color:white;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Return</button>
+                  </form>
+                  <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark_cleared" />
+                    <input type="hidden" name="record_id" value="{{ rec.id }}" />
+                    <button type="submit" style="background:#6b7280;color:white;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Cleared</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p style="font-size:13px;color:#6b7280;">No borrowing record yet for this student.</p>
+  {% endif %}
+</div>
+<script>
+  (function() {
+    var input = document.getElementById('books-filter');
+    var select = document.getElementById('{{ assign_form.books.id_for_label }}');
+    if (!input || !select) return;
+
+    input.addEventListener('keyup', function() {
+      var term = this.value.toLowerCase();
+      for (var i = 0; i < select.options.length; i++) {
+        var opt = select.options[i];
+        var text = (opt.text || '').toLowerCase();
+        opt.style.display = term && text.indexOf(term) === -1 ? 'none' : '';
+      }
+    });
+  })();
+</script>
+{% endblock %}

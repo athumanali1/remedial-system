@@ -1,0 +1,21 @@
+{% extends 'website/base.html' %}
+
+{% block title %}AHS Tenders - AHS School{% endblock %}
+
+{% block content %}
+  <h1 class="mb-3">AHS Tenders</h1>
+  <ul class="list-group">
+    {% for t in tenders %}
+      <li class="list-group-item">
+        <h5>{{ t.title }}</h5>
+        <p class="mb-1 small text-muted">Published: {{ t.publish_date }}{% if t.closing_date %} · Closing: {{ t.closing_date }}{% endif %}</p>
+        {% if t.description %}<p>{{ t.description|linebreaks }}</p>{% endif %}
+        {% if t.document %}
+          <a href="{{ t.document.url }}" class="btn btn-sm btn-primary" target="_blank">Download document</a>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li class="list-group-item">No tenders available at the moment.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

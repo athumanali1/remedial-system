@@ -1,0 +1,118 @@
+{% extends "lessons/base.html" %}
+{% load lessons_extras %}
+{% block title %}Remedial Timetable{% endblock %}
+{% block content %}
+<style>
+  .ttable {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #d1d5db;
+    margin-top: 8px;
+    font-size: 1em;
+  }
+  .ttable th,
+  .ttable td {
+    border: 1px solid #999; /* darker border for visibility */
+    padding: 2px;
+    text-align: center;
+  }
+  .ttable thead th {
+    background: #dbeafe;  /* light blue */
+    color: #1d4ed8;       /* blue text */
+    font-weight: 600;
+  }
+  /* Make time column slightly narrower and day headers slanted */
+  .ttable th.time-col {
+    width: 80px;
+  }
+  .ttable th.day-col {
+    width: 90px;
+    height: 80px;
+    vertical-align: bottom;
+  }
+  .ttable th.day-col > span {
+    display: inline-block;
+    transform: rotate(-60deg);
+    transform-origin: bottom left;
+    white-space: nowrap;
+  }
+  /* Half-colour (top), half-white (bottom) vertical split for status cells */
+  .tt-green {
+    background-image: linear-gradient(to bottom, #22c55e 0%, #22c55e 50%, #ffffff 50%, #ffffff 100%);
+  }
+  .tt-red {
+    background-image: linear-gradient(to bottom, #ef4444 0%, #ef4444 50%, #ffffff 50%, #ffffff 100%);
+  }
+  .tt-grey {
+    background-image: linear-gradient(to bottom, #d4d4d8 0%, #d4d4d8 50%, #ffffff 50%, #ffffff 100%);
+  }
+</style>
+
+<h2>Lukore Secondary School</h2>
+
+<!-- Navigation: Back, Home, and switch to Normal timetable -->
+<div style="margin-top:8px; margin-bottom:8px; display:flex; gap:8px;">
+  <button type="button" onclick="window.history.back();">Back</button>
+  <a href="{% url 'teacher_dashboard' %}" class="btn">Home</a>
+  <a href="{% url 'teacher_normal_timetable' %}" class="btn">Normal Timetable</a>
+</div>
+
+<form method="get" style="margin-top:8px; margin-bottom:8px;">
+  <label>Week:</label>
+  <select name="week">
+    {% for w in weeks %}
+      <option value="{{ w.id }}" {% if selected_week == w.id %}selected{% endif %}>Week {{ w.number }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Apply</button>
+</form>
+
+<table class="ttable">
+  <thead>
+    <tr>
+      <th class="time-col">Time</th>
+      {% for day_code in days %}
+        <th class="day-col">
+          <span>{% if day_code == 'Mon' %}Monday{% elif day_code == 'Tue' %}Tuesday{% elif day_code == 'Wed' %}Wednesday{% elif day_code == 'Thu' %}Thursday{% elif day_code == 'Fri' %}Friday{% elif day_code == 'Sat' %}Saturday{% else %}{{ day_code }}{% endif %}</span>
+        </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for st, et in remedial_time_slots %}
+      <tr>
+        <td>{{ st|time:"H:i" }} - {{ et|time:"H:i" }}</td>
+        {% for day_code in days %}
+          {% with col_list=remedial_grid|dict_get:day_code %}
+            {% if col_list %}
+              {% with tts=col_list|index:forloop.parentloop.counter0 %}
+                {% with color_row=remedial_color_grid|dict_get:day_code %}
+                  {% with cell_color=color_row|index:forloop.parentloop.counter0 %}
+                    <td class="tt-cell tt-{{ cell_color }}">
+                      {% if tts %}
+                        {% for tt in tts %}
+                          {% for cg in tt.class_groups.all %}
+                            {{ cg.name|short_class }}{% if not forloop.last %}, {% endif %}
+                          {% endfor %}<br/>
+                          {{ tt.subject_fk.name|short_subject }}
+                          {% if not forloop.last %}<hr/>{% endif %}
+                        {% endfor %}
+                      {% else %}
+                        &mdash;
+                      {% endif %}
+                    </td>
+                  {% endwith %}
+                {% endwith %}
+              {% endwith %}
+            {% else %}
+              <td class="tt-cell tt-grey">&mdash;</td>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+      </tr>
+    {% empty %}
+      <tr><td colspan="{{ days|length|add:1 }}">No remedial timetable slots found for you.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

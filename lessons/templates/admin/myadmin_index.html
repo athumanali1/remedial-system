@@ -1,0 +1,66 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'lessons/css/admin.css' %}">
+<style>
+  .hero{display:flex;align-items:center;justify-content:space-between;gap:16px;background:linear-gradient(135deg,#0ea5e9 0%,#22c55e 100%);color:#fff;padding:20px 22px;border-radius:12px;margin-bottom:18px}
+  .hero h1{margin:0;font-size:22px}
+  .quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+  .qcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
+  .qcard a{display:inline-block;margin-top:8px;color:#0ea5e9;font-weight:600;text-decoration:none}
+</style>
+{% endblock %}
+{% block content %}
+<div class="hero">
+  <h1>Admin Dashboard</h1>
+  <div>Welcome to the Admin Portal</div>
+</div>
+
+{% if perms.library.view_book and not request.user.is_superuser %}
+<div class="quick-grid">
+  <div class="qcard">
+    <div><strong>Library</strong><div>Library dashboard</div></div>
+    <a href="{% url 'library:dashboard' %}">Open Library Dashboard</a>
+  </div>
+</div>
+{% endif %}
+
+{% if request.user.is_superuser %}
+<div class="quick-grid">
+  <div class="qcard">
+    <div><strong>Users</strong><div>Manage accounts</div></div>
+    <a href="{% url 'admin:auth_user_changelist' %}">Open</a>
+  </div>
+  <div class="qcard">
+    <div><strong>Groups</strong><div>Permissions and roles</div></div>
+    <a href="{% url 'admin:auth_group_changelist' %}">Open</a>
+  </div>
+  <div class="qcard">
+    <div><strong>Password reset tokens</strong><div>Generate tokens</div></div>
+    <a href="{% url 'admin:lessons_passwordresettoken_changelist' %}">Open</a>
+  </div>
+  <div class="qcard">
+    <div><strong>Lessons & Timetables</strong><div>Academic management</div></div>
+    <a href="{% url 'admin:index' %}#app-list">Browse apps</a><br/>
+    <a href="{% url 'admin_payments' %}">💰 Payments Dashboard</a><br/>
+    <a href="{% url 'myadmin:remedial_stats' %}">Remedial overview & payments</a>
+  </div>
+</div>
+{% endif %}
+<h2 id="app-list">Applications</h2>
+<div class="summary-grid">
+  {% for app in app_list %}
+    <div class="cell">
+      <h3>{{ app.name }}</h3>
+      <ul>
+        {% for model in app.models %}
+          <li>
+            {% if model.admin_url %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% else %}{{ model.name }}{% endif %}
+            {% if model.add_url %} · <a href="{{ model.add_url }}">Add</a>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

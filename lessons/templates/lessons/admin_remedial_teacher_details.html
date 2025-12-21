@@ -1,0 +1,84 @@
+{% extends "lessons/base.html" %}
+{% block title %}Remedial Teacher Details{% endblock %}
+{% block content %}
+<h1>Remedial Lessons for {{ teacher }}</h1>
+
+<form method="get" style="margin-bottom:16px;">
+  <label>Week:</label>
+  <select name="week">
+    <option value="">All</option>
+    {% for w in weeks %}
+      <option value="{{ w.id }}" {% if selected_week == w.id %}selected{% endif %}>Week {{ w.number }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" style="margin-left:8px;">Filter</button>
+</form>
+
+<div style="margin-bottom:12px;">
+  <strong>Total:</strong> {{ total }} |
+  <strong>Attended:</strong> {{ attended }} |
+  <strong>Not Attended:</strong> {{ not_attended }} |
+  <strong>Pending:</strong> {{ pending }}
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Select</th>
+        <th>Week</th>
+        <th>Day</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Classes</th>
+        <th>Subject</th>
+        <th>Status</th>
+        <th>Payment Status</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>
+            {% for rid in row.record_ids %}
+              <input type="checkbox" name="record_ids" value="{{ rid }}" />
+            {% endfor %}
+          </td>
+          <td>Week {{ row.week.number }}</td>
+          <td>{{ row.day_code }}</td>
+          <td>{{ row.start|time:"H:i" }}</td>
+          <td>{{ row.end|time:"H:i" }}</td>
+          <td>{{ row.class_label }}</td>
+          <td>{{ row.subject_name }}</td>
+          <td>{{ row.status }}</td>
+          <td>{{ row.payment_status }}</td>
+          <td>{{ row.amount }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="10">No remedial lessons found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+    <label>Set Status:</label>
+    <select name="status">
+      <option value="">-- no change --</option>
+      <option value="Pending">Pending</option>
+      <option value="Attended">Attended</option>
+      <option value="Not Attended">Not Attended</option>
+    </select>
+
+    <label>Payment:</label>
+    <select name="payment_status">
+      <option value="">-- no change --</option>
+      <option value="Paid">Paid</option>
+      <option value="Unpaid">Unpaid</option>
+    </select>
+
+    <button type="submit">Apply to selected</button>
+  </div>
+</form>
+{% endblock %}

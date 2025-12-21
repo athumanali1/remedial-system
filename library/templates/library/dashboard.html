@@ -1,0 +1,63 @@
+{% extends "lessons/base.html" %}
+{% block title %}Library Dashboard{% endblock %}
+
+{% block content %}
+<div style="background:#0f766e;color:white;padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <div>
+    <h1 style="margin:0;font-size:22px;">📚 Library Dashboard</h1>
+    <p style="margin:4px 0 0;font-size:13px;">Quick overview of books and loans. Use the buttons below to manage the library.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+    <a href="{% url 'library:add_book' %}"
+       style="background:white;color:#0f766e;padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      ➕ Add new book
+    </a>
+    <a href="{% url 'library:manage_loans' %}"
+       style="background:#f97316;color:white;padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      📚 Assign / Return books
+    </a>
+    <a href="{% url 'library:book_list' %}"
+       style="background:#0ea5e9;color:white;padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      📖 View all books
+    </a>
+    <a href="{% url 'library:add_student' %}"
+       style="background:#4b5563;color:white;padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+       👨‍🎓 Add student
+    </a>
+    <button type="button" class="print-btn" onclick="(function(){ var url = window.location.href; url += (url.indexOf('?') === -1) ? '?print=1' : '&print=1'; window.location.href = url; })()" style="background:#111827;color:white;padding:6px 12px;border-radius:6px;border:none;font-size:13px;font-weight:600;">Print / Download</button>
+  </div>
+</div>
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+  <h2 style="margin:0 0 10px;font-size:18px;">Summary</h2>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;">
+    <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;min-width:120px;">
+      <div style="font-size:11px;color:#6b7280;">Total books</div>
+      <div style="font-size:18px;font-weight:600;">{{ total_books }}</div>
+    </div>
+    <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;min-width:120px;">
+      <div style="font-size:11px;color:#6b7280;">Available</div>
+      <div style="font-size:18px;font-weight:600;">{{ available_books }}</div>
+    </div>
+    <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;min-width:120px;">
+      <div style="font-size:11px;color:#6b7280;">Assigned</div>
+      <div style="font-size:18px;font-weight:600;">{{ assigned_books }}</div>
+    </div>
+    <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;min-width:140px;">
+      <div style="font-size:11px;color:#6b7280;">Active loans</div>
+      <div style="font-size:18px;font-weight:600;">{{ total_active_loans }}</div>
+    </div>
+    <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;min-width:140px;">
+      <div style="font-size:11px;color:#6b7280;">Overdue loans</div>
+      <div style="font-size:18px;font-weight:600;color:#b91c1c;">{{ overdue_count }}</div>
+    </div>
+  </div>
+</div>
+{% if request.GET.print == '1' %}
+  <style>
+    a[href], .print-btn, .btn { display:none !important; }
+    .container, nav, footer { display:none !important; }
+  </style>
+  <script>window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+{% endif %}
+{% endblock %}

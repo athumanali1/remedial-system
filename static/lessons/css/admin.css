@@ -1,0 +1,80 @@
+/* Basic layout improvements for Django admin */
+:root { --gap: 12px; }
+#content { max-width: 1280px; }
+.module { margin-bottom: 18px; }
+.module h1, .module h2 { margin: 0 0 10px; }
+
+/******** Tables ********/
+.results { width: 100%; border-collapse: collapse; }
+.results th, .results td { padding: 8px 10px; }
+.results thead th { position: sticky; top: 0; background: #f6f6f6; z-index: 1; }
+.admin-scroll { overflow-x: auto; }
+
+/******** Object tools ********/
+.object-tools { display: flex; gap: var(--gap); align-items: center; }
+.object-tools li { list-style: none; }
+
+/******** Filters & forms ********/
+.admin-inline-filters { display: flex; gap: var(--gap); flex-wrap: wrap; align-items: center; }
+.admin-inline-filters select, .admin-inline-filters input { min-width: 220px; }
+
+/******** Summary grid ********/
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--gap); }
+.summary-grid .cell { border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; background: #fff; }
+
+/* -------- Global polish across admin subpages -------- */
+body.dashboard #container,
+body.change-list #container,
+body.change-form #container,
+body.app-index #container { background: #f5f7fb; }
+
+/* Headings */
+h1, h2, h3 { color: #0f172a; }
+
+/* Buttons */
+.button, a.button, .submit-row input[type="submit"], .actions .button {
+  background: linear-gradient(90deg, #0ea5e9, #2563eb);
+  color: #fff !important;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(14,165,233,.18);
+}
+.button:hover, a.button:hover, .submit-row input[type="submit"]:hover, .actions .button:hover {
+  filter: brightness(0.98);
+  box-shadow: 0 6px 14px rgba(37,99,235,.18);
+}
+
+/* Change list toolbar */
+.change-list .actions { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+.paginator { display: flex; align-items: center; gap: 8px; padding: 10px 0; }
+.paginator a { padding: 4px 8px; border-radius: 6px; background: #fff; border: 1px solid #e5e7eb; text-decoration: none; }
+
+/* Filters sidebar */
+#changelist-filter { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; }
+#changelist-filter h2 { color: #0ea5e9; }
+
+/* Forms */
+fieldset.module { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; }
+.aligned .form-row { padding: 8px 0; border-bottom: 1px dashed #eef2f7; }
+.aligned .form-row:last-child { border-bottom: none; }
+input, select, textarea { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+
+/* Messages */
+.messagelist .success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+.messagelist .warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.messagelist .error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+/* Tables hover */
+.results tbody tr:hover { background: #eef6ff; }
+
+/* Header bar */
+#header { background: linear-gradient(90deg, #0ea5e9, #2563eb); }
+#branding h1, #branding h1 a { color: #fff !important; }
+
+/* Scrolling utilities */
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.scroll-y { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scroll-viewport { max-height: 70vh; overflow: auto; -webkit-overflow-scrolling: touch; }

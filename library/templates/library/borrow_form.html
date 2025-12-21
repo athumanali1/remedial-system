@@ -1,0 +1,9 @@
+{% extends 'lessons/base.html' %}
+{% block title %}Borrow {{ book.title }}{% endblock %}
+{% block content %}
+<h2>Borrow: {{ book.title }}</h2>
+<form method="post">{% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+{% endblock %}

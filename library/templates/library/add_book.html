@@ -1,0 +1,50 @@
+{% extends 'lessons/base.html' %}
+{% block title %}Add Book{% endblock %}
+{% block content %}
+
+<div style="background:#0f766e;color:white;padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <div>
+    <h1 style="margin:0;font-size:22px;">➕ Add new book</h1>
+    <p style="margin:4px 0 0;font-size:13px;">Enter book details. Category works as the subject for this book.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+    <a href="{% url 'library:dashboard' %}"
+       style="background:white;color:#0f766e;padding:4px 10px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      ← Back to Library Dashboard
+    </a>
+  </div>
+</div>
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+  <form method="post">
+    {% csrf_token %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;">
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Title</label>
+        {{ form.title }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Category</label>
+        {{ form.category }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">ISBN</label>
+        {{ form.isbn }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Book number</label>
+        {{ form.book_number }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Price</label>
+        {{ form.price }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Status</label>
+        {{ form.status }}
+      </div>
+    </div>
+    <button type="submit" style="margin-top:10px;background:#0f766e;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer;">Save book</button>
+  </form>
+</div>
+{% endblock %}

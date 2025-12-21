@@ -1,0 +1,19 @@
+{% extends "lessons/base.html" %}
+{% block title %}Generate Remedial Week Lessons{% endblock %}
+{% block content %}
+<h2>Generate Remedial Week Lessons</h2>
+<p>Select a week to create remedial Lesson Records from the remedial timetable. This
+will create exactly one Lesson per remedial slot and teacher for the chosen week.
+Existing lessons for that week will not be duplicated.</p>
+
+<form method="post">
+  {% csrf_token %}
+  <label for="week"><strong>Week:</strong></label>
+  <select name="week" id="week" required>
+    {% for w in weeks %}
+      <option value="{{ w.id }}">Week {{ w.number }} ({{ w.start_date }} - {{ w.end_date }})</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Generate Remedial Lessons</button>
+</form>
+{% endblock %}

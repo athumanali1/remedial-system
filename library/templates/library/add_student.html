@@ -1,0 +1,42 @@
+{% extends 'lessons/base.html' %}
+{% block title %}Add Student{% endblock %}
+{% block content %}
+
+<div style="background:#0f766e;color:white;padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <div>
+    <h1 style="margin:0;font-size:22px;">👨‍🎓 Add student</h1>
+    <p style="margin:4px 0 0;font-size:13px;">Create a new student that will be visible for remedial payments and library loans.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+    <a href="{% url 'library:dashboard' %}"
+       style="background:white;color:#0f766e;padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      ← Back to Library Dashboard
+    </a>
+  </div>
+</div>
+
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+  <form method="post">
+    {% csrf_token %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">First name</label>
+        {{ form.first_name }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Last name</label>
+        {{ form.last_name }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Admission number</label>
+        {{ form.admission_number }}
+      </div>
+      <div>
+        <label style="font-size:13px;color:#111827;display:block;margin-bottom:3px;">Class</label>
+        {{ form.class_group }}
+      </div>
+    </div>
+    <button type="submit" style="margin-top:10px;background:#0f766e;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer;">Save student</button>
+  </form>
+</div>
+{% endblock %}

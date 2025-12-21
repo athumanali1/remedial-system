@@ -1,0 +1,118 @@
+{% extends "lessons/base.html" %}
+{% load static %}
+
+{% block title %}Normal Lessons Stats (Admin){% endblock %}
+
+{% block content %}
+<h1>Lessons Stats</h1>
+
+{% if request.GET.print == '1' %}
+<style>
+  /* Print preview: hide interactive controls */
+  .tabs, .filters, .filters button, .filters select, .filters input, .admin-scroll .button, a.btn { display: none !important; }
+  body { background: #fff !important; }
+  .cards-container { display:block }
+  .card { border:1px solid #ddd; padding:8px; margin:6px 0 }
+</style>
+<script>window.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+{% endif %}
+
+<div class="tabs" style="margin: 12px 0;">
+  <a class="btn {% if request.resolver_match.url_name == 'deputy_normal_stats' %}active{% endif %}" href="{% url 'deputy:deputy_normal_stats' %}">Overview</a>
+  <a class="btn" href="{% url 'deputy:lessons_normallessonslot_changelist' %}">Lesson slots</a>
+  <a class="btn" href="{% url 'deputy:lessons_normallessonattendance_changelist' %}">Lesson attendances</a>
+</div>
+
+<div class="filters" style="margin-bottom:16px;">
+  <form method="get">
+    <label>Teacher:</label>
+    <select name="teacher">
+      <option value="">All</option>
+      {% for t in teachers %}
+        <option value="{{ t.id }}" {% if selected_teacher == t.id %}selected{% endif %}>
+          {{ t.user.get_full_name|default:t.user.username }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label>Week:</label>
+    <select name="week">
+      <option value="">All</option>
+      {% for w in weeks %}
+        <option value="{{ w.id }}" {% if selected_week == w.id %}selected{% endif %}>
+          Week {{ w.number }} ({{ w.start_date }} - {{ w.end_date }})
+        </option>
+      {% endfor %}
+    </select>
+
+    <label>Day:</label>
+    <select name="normal_day">
+      <option value="">All</option>
+      <option value="Mon" {% if normal_selected_day == 'Mon' %}selected{% endif %}>Monday</option>
+      <option value="Tue" {% if normal_selected_day == 'Tue' %}selected{% endif %}>Tuesday</option>
+      <option value="Wed" {% if normal_selected_day == 'Wed' %}selected{% endif %}>Wednesday</option>
+      <option value="Thu" {% if normal_selected_day == 'Thu' %}selected{% endif %}>Thursday</option>
+      <option value="Fri" {% if normal_selected_day == 'Fri' %}selected{% endif %}>Friday</option>
+    </select>
+
+    <label>Date:</label>
+    <input type="date" name="normal_date" value="{{ normal_selected_date }}" />
+
+    <button type="submit">Apply</button>
+    <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tu=t?t.value:'';var wu=w?w.value:''; var url = '{% url 'deputy:deputy_normal_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu); window.location.href = url; })()">Print / Download</button>
+  </form>
+</div>
+
+<!-- Global summary -->
+<div class="cards-container">
+  <div class="card"><h3>Total</h3><p>{{ total }}</p></div>
+  <div class="card"><h3>Attended</h3><p>{{ attended }} ({{ attended_pct }}%)</p></div>
+  <div class="card"><h3>Not Attended</h3><p>{{ not_attended }} ({{ not_attended_pct }}%)</p></div>
+  <div class="card"><h3>Pending</h3><p>{{ pending }} ({{ pending_pct }}%)</p></div>
+</div>
+
+<!-- Per-teacher breakdown -->
+<h2 style="margin-top:24px;">Teacher Summary</h2>
+<div class="admin-scroll scroll-x scroll-viewport">
+<table>
+  <thead>
+    <tr>
+      <th>Teacher</th>
+      <th>Total</th>
+      <th>Attended</th>
+      <th>Not Attended</th>
+      <th>Pending</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in per_teacher_list %}
+      <tr>
+        <td>
+          {% if item.teacher %}
+            <a href="{% url 'deputy:deputy_normal_teacher_details' item.teacher.id %}?normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">
+              {{ item.teacher.user.get_full_name|default:item.teacher.user.username }}
+            </a>
+          {% else %}
+              —
+          {% endif %}
+        </td>
+        <td>{{ item.total }}</td>
+        <td>{{ item.attended }} ({{ item.attended_pct }}%)</td>
+        <td>{{ item.not_attended }} ({{ item.not_attended_pct }}%)</td>
+        <td>{{ item.pending }} ({{ item.pending_pct }}%)</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No data.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if selected_teacher %}
+  <p style="margin-top:24px;">
+    <a class="button" href="{% url 'deputy:deputy_normal_teacher_details' selected_teacher %}?normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">View detailed slots for selected teacher →</a>
+  </p>
+{% endif %}
+
+{% endblock %}
+

@@ -1,0 +1,46 @@
+{% extends "lessons/base.html" %}
+{% load lessons_extras %}
+{% block title %}Teacher Summary PDF{% endblock %}
+{% block content %}
+<style>
+  body { font-family: sans-serif; }
+  table { width:100%; border-collapse: collapse; margin-top:8px }
+  th, td { border: 1px solid #ccc; padding:6px; font-size:12px }
+  th { background:#f2f2f2 }
+</style>
+<h1>Teacher Summary</h1>
+{% if teacher %}
+  <p><strong>Teacher:</strong> {{ teacher.user.get_full_name|default:teacher.user.username }}</p>
+{% else %}
+  <p><strong>Scope:</strong> All teachers</p>
+{% endif %}
+{% if week %}
+  <p><strong>Week:</strong> Week {{ week.number }} ({{ week.start_date }} - {{ week.end_date }})</p>
+{% else %}
+  <p><strong>Week:</strong> All</p>
+{% endif %}
+
+<table>
+  <thead>
+    <tr>
+      <th>Teacher</th>
+      <th>Total</th>
+      <th>Attended</th>
+      <th>Not Attended</th>
+      <th>Pending</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in per_teacher_list %}
+      <tr>
+        <td>{% if item.teacher %}{{ item.teacher.user.get_full_name|default:item.teacher.user.username }}{% else %}—{% endif %}</td>
+        <td>{{ item.total }}</td>
+        <td>{{ item.attended }} ({{ item.attended_pct }}%)</td>
+        <td>{{ item.not_attended }} ({{ item.not_attended_pct }}%)</td>
+        <td>{{ item.pending }} ({{ item.pending_pct }}%)</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

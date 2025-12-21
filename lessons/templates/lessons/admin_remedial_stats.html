@@ -1,0 +1,87 @@
+{% extends "lessons/base.html" %}
+{% block title %}Remedial Stats{% endblock %}
+{% block content %}
+<h1>Remedial Lessons Overview</h1>
+
+{% if request.GET.print == '1' %}
+<style>
+  /* Print preview: hide interactive controls */
+  form, form button, select, input, a { display: none !important; }
+  body { background: #fff !important; }
+  .card { border:1px solid #ddd; padding:8px; margin:6px 0 }
+</style>
+<script>window.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+{% endif %}
+
+<form method="get" style="margin-bottom:16px;">
+  <label>Week:</label>
+  <select name="week">
+    <option value="">All</option>
+    {% for w in weeks %}
+      <option value="{{ w.id }}" {% if selected_week == w.id %}selected{% endif %}>Week {{ w.number }}</option>
+    {% endfor %}
+  </select>
+
+  <label style="margin-left:12px;">Teacher:</label>
+  <select name="teacher">
+    <option value="">All</option>
+    {% for t in teachers %}
+      <option value="{{ t.id }}" {% if selected_teacher == t.id %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit" style="margin-left:8px;">Filter</button>
+  <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tu=t?t.value:'';var wu=w?w.value:''; var url = '{% url 'myadmin:remedial_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu); window.location.href = url; })()">Print / Download</button>
+</form>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+  <div class="card"><strong>Total Lessons:</strong> {{ total }}</div>
+  <div class="card"><strong>Attended:</strong> {{ attended }}</div>
+  <div class="card"><strong>Not Attended:</strong> {{ not_attended }}</div>
+  <div class="card"><strong>Pending:</strong> {{ pending }}</div>
+  <div class="card"><strong>Paid:</strong> {{ paid }}</div>
+  <div class="card"><strong>Unpaid:</strong> {{ unpaid }}</div>
+  <div class="card"><strong>Total Paid Amount:</strong> {{ total_paid_amount }}</div>
+  <div class="card"><strong>Total Unpaid Amount:</strong> {{ total_unpaid_amount }}</div>
+</div>
+
+<h2>Per Teacher</h2>
+<table class="admin-table" style="width:100%; border-collapse:collapse; margin-top:8px;">
+  <thead>
+    <tr>
+      <th>Teacher</th>
+      <th>Total</th>
+      <th>Attended</th>
+      <th>Not Attended</th>
+      <th>Pending</th>
+      <th>Paid</th>
+      <th>Unpaid</th>
+      <th>Paid Amount</th>
+      <th>Unpaid Amount</th>
+      <th>Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in per_teacher_list %}
+      <tr>
+        <td>{{ row.teacher }}</td>
+        <td>{{ row.total }}</td>
+        <td>{{ row.attended }} ({{ row.attended_pct }}%)</td>
+        <td>{{ row.not_attended }} ({{ row.not_attended_pct }}%)</td>
+        <td>{{ row.pending }} ({{ row.pending_pct }}%)</td>
+        <td>{{ row.paid }}</td>
+        <td>{{ row.unpaid }}</td>
+        <td>{{ row.paid_amount }}</td>
+        <td>{{ row.unpaid_amount }}</td>
+        <td>
+          {% if row.teacher %}
+            <a href="{% url 'myadmin:remedial_teacher_details' row.teacher.id %}?week={{ selected_week|default:'' }}">View</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="10">No remedial lessons found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

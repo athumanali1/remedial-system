@@ -1,0 +1,18 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Contact - AHS School{% endblock %}
+
+{% block content %}
+  <h1 class="mb-3">Contact Us</h1>
+  {% if info %}
+    {% if info.school_name %}<h4>{{ info.school_name }}</h4>{% endif %}
+    {% if info.address %}<p>{{ info.address|linebreaks }}</p>{% endif %}
+    {% if info.phone %}<p><strong>Phone:</strong> {{ info.phone }}</p>{% endif %}
+    {% if info.email %}<p><strong>Email:</strong> <a href="mailto:{{ info.email }}">{{ info.email }}</a></p>{% endif %}
+    {% if info.map_embed %}
+      <div class="mt-3">{{ info.map_embed|safe }}</div>
+    {% endif %}
+  {% else %}
+    <p>Contact details are not configured yet. Add them in admin under Website → Contact information.</p>
+  {% endif %}
+{% endblock %}

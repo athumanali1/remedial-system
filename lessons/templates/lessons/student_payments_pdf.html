@@ -1,0 +1,30 @@
+{% extends "lessons/base.html" %}
+{% block title %}Student Payments{% endblock %}
+{% block content %}
+<style>
+  body { font-family: sans-serif; }
+  table { width:100%; border-collapse: collapse; margin-top:8px }
+  th, td { border: 1px solid #ccc; padding:6px; font-size:12px }
+  th { background:#f2f2f2 }
+</style>
+<h1>Payments for {{ student.first_name }} {{ student.last_name }} ({{ student.admission_number }})</h1>
+<p>Class: {{ student.class_group.name }}</p>
+<table>
+  <thead>
+    <tr><th>Date</th><th>Amount</th><th>Term</th><th>Recorded By</th></tr>
+  </thead>
+  <tbody>
+    {% for p in payments %}
+      <tr>
+        <td>{{ p.date_paid }}</td>
+        <td>{{ p.amount }}</td>
+        <td>{{ p.term }}</td>
+        <td>{% if p.recorded_by %}{{ p.recorded_by.user.get_full_name|default:p.recorded_by.user.username }}{% else %}-{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">No payments recorded.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p><strong>Total Paid:</strong> {{ total_paid }}</p>
+{% endblock %}

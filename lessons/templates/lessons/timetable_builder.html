@@ -1,0 +1,211 @@
+{% extends "lessons/base.html" %}
+{% load lessons_extras %}
+{% block title %}Timetable Builder{% endblock %}
+{% block content %}
+
+{% if error_message %}
+  <div id="tt-error" style="
+       position: fixed;
+       top: 80px;
+       right: 20px;
+       max-width: 360px;
+       background: #fee2e2;
+       color: #b91c1c;
+       border: 1px solid #fecaca;
+       border-radius: 8px;
+       padding: 10px 12px;
+       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+       z-index: 1100;
+  ">
+    <div style="display:flex; align-items:flex-start; gap:8px;">
+      <div style="flex:1;">
+        <strong>Timetable save blocked</strong>
+        <div style="font-size:0.9em; margin-top:4px;">{{ error_message }}</div>
+      </div>
+      <button type="button" onclick="document.getElementById('tt-error').remove();" style="
+              background:none;
+              border:none;
+              color:#b91c1c;
+              font-weight:bold;
+              cursor:pointer;
+      ">×</button>
+    </div>
+  </div>
+{% endif %}
+
+<h2>Timetable Builder (Mon–Fri)</h2>
+
+<!-- Choose which classes to display in the grid -->
+<form method="get" style="margin-bottom:16px;">
+  <label for="classes"><strong>Select class groups to display</strong></label><br>
+  <select id="classes" name="classes" multiple size="6" style="min-width:240px;">
+    {% for cg in class_groups_all %}
+      <option value="{{ cg.id }}" {% if cg.id in selected_class_ids %}selected{% endif %}>{{ cg.name }}</option>
+    {% endfor %}
+  </select>
+  <div>
+    <button type="submit" style="margin-top:8px;">Show Selected Classes</button>
+  </div>
+  <p style="font-size:12px;color:#555;">Tip: Hold Ctrl (Cmd on Mac) to select multiple classes.</p>
+  <hr>
+</form>
+
+<form method="post">
+  {% csrf_token %}
+  {% for cid in selected_class_ids %}
+    <input type="hidden" name="selected_classes" value="{{ cid }}">
+  {% endfor %}
+  {% for d in days %}
+    <h3>{{ d }}</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Class / Time</th>
+          {% for st, et in slots %}
+            <th>{{ st|time:"H:i" }} - {{ et|time:"H:i" }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for cg in class_groups %}
+          <tr>
+            <td>{{ cg.name }}</td>
+            {% for st, et in slots %}
+              {% with st_key=st|time:"Hi" et_key=et|time:"Hi" %}
+                {% with base=cg.id|stringformat:"s"|add:"_"|add:d|add:"_"|add:st_key|add:"_"|add:et_key %}
+                  <td class="tt-cell">
+                    {# Lesson 1 (always visible) #}
+                    {% with key1=base|add:"_1" %}
+                      {% with selected1=current|dict_get:key1 %}
+                        <div class="lesson-select" data-index="1">
+                          <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_1">
+                            <option value="" {% if not selected1 %}selected{% endif %}>-- Empty --</option>
+                            {% for p in pairs %}
+                              <option value="{{ p.subject_id }}-{{ p.teacher_id }}" {% if selected1 == p.key %}selected{% endif %}>{{ p.label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      {% endwith %}
+                    {% endwith %}
+
+                    {# Lesson 2 (hidden if empty) #}
+                    {% with key2=base|add:"_2" %}
+                      {% with selected2=current|dict_get:key2 %}
+                        <div class="lesson-select" data-index="2" {% if not selected2 %}style="display:none;"{% endif %}>
+                          <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_2" style="margin-top:4px;">
+                            <option value="" {% if not selected2 %}selected{% endif %}>-- Empty --</option>
+                            {% for p in pairs %}
+                              <option value="{{ p.subject_id }}-{{ p.teacher_id }}" {% if selected2 == p.key %}selected{% endif %}>{{ p.label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      {% endwith %}
+                    {% endwith %}
+
+                    {# Lesson 3 (hidden if empty) #}
+                    {% with key3=base|add:"_3" %}
+                      {% with selected3=current|dict_get:key3 %}
+                        <div class="lesson-select" data-index="3" {% if not selected3 %}style="display:none;"{% endif %}>
+                          <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_3" style="margin-top:4px;">
+                            <option value="" {% if not selected3 %}selected{% endif %}>-- Empty --</option>
+                            {% for p in pairs %}
+                              <option value="{{ p.subject_id }}-{{ p.teacher_id }}" {% if selected3 == p.key %}selected{% endif %}>{{ p.label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      {% endwith %}
+                    {% endwith %}
+
+                    <button type="button" class="add-lesson-btn" style="margin-top:4px; font-size:11px; padding:1px 4px;">Add lesson</button>
+                  </td>
+                {% endwith %}
+              {% endwith %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <hr/>
+  {% endfor %}
+  <button type="submit" name="action" value="save">Save Timetable</button>
+  <button type="submit" name="action" value="clear">Clear</button>
+  <button type="button" onclick="window.location.href='{% url 'timetable_master' %}'" style="margin-left:8px;">View Master Timetable</button>
+  <button type="button" onclick="window.location.href='{% url 'generate_week_lessons' %}'" style="margin-left:8px;">Generate Week Lessons</button>
+</form>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Joint lesson config from server
+    var JOINT_SUBJECT_IDS = new Set([
+      {% for sid in joint_subject_ids %}{{ sid }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    ]);
+
+    var JOINT_CLASS_GROUP = {
+      {% for cid, tag in joint_class_group_tags.items %}
+        {{ cid }}: "{{ tag }}"{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    };
+
+    var JOINT_GROUP_MEMBERS = {
+      {% for tag, ids in joint_group_members.items %}
+        "{{ tag }}": [
+          {% for cid in ids %}{{ cid }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        ]{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    };
+
+    document.querySelectorAll('.tt-cell .add-lesson-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var cell = btn.closest('.tt-cell');
+        if (!cell) return;
+        var selects = cell.querySelectorAll('.lesson-select');
+        for (var i = 0; i < selects.length; i++) {
+          if (selects[i].style.display === 'none') {
+            selects[i].style.display = '';
+            break;
+          }
+        }
+      });
+    });
+
+    // Auto-copy joint subjects within joint class groups
+    document.querySelectorAll('.tt-cell .lesson-select select').forEach(function(sel) {
+      sel.addEventListener('change', function() {
+        var val = sel.value || '';
+        if (!val) return;  // do not auto-clear others
+
+        var parts = val.split('-');
+        if (parts.length < 2) return;
+        var subjId = parseInt(parts[0], 10);
+        if (!JOINT_SUBJECT_IDS.has(subjId)) return;  // only for joint subjects
+
+        // Parse name: cell_<classId>_<day>_<HHMM>_<HHMM>_<idx>
+        var m = sel.name.match(/^cell_(\d+)_([^_]+)_(\d{4})_(\d{4})_(\d+)$/);
+        if (!m) return;
+        var classId = parseInt(m[1], 10);
+        var day = m[2];
+        var st = m[3];
+        var et = m[4];
+        var idx = m[5];
+
+        var groupTag = JOINT_CLASS_GROUP[classId];
+        if (!groupTag) return;  // class not in a joint group
+
+        var members = JOINT_GROUP_MEMBERS[groupTag] || [];
+        members.forEach(function(otherId) {
+          if (otherId === classId) return;
+          var otherName = 'cell_' + otherId + '_' + day + '_' + st + '_' + et + '_' + idx;
+          var otherSel = document.querySelector('select[name="' + otherName + '"]');
+          if (!otherSel) return;
+          otherSel.value = val;
+
+          // Ensure its container is visible if it was hidden (for lesson 2/3)
+          var cont = otherSel.closest('.lesson-select');
+          if (cont && cont.style.display === 'none') {
+            cont.style.display = '';
+          }
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}
