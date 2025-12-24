@@ -1,5 +1,22 @@
 from django.contrib import admin
-from .models import Subject, ClassGroup, Teacher, Timetable, Week, LessonRecord
+from .models import (
+    Subject,
+    ClassGroup,
+    Teacher,
+    Timetable,
+    Week,
+    NormalLessonSlot,
+    NormalLessonAttendance,
+    LessonRecord,
+    TeacherPushSubscription,
+    SentClassNotification,
+    SentRemedialNotification,
+    PasswordResetToken,
+    JointSubject,
+    JointClassGroupSet,
+    Student, StudentPayment
+)
+from . import views
 from django.contrib.admin import AdminSite
 from django import forms
 from django.contrib.auth.models import User, Group
@@ -14,6 +31,35 @@ class MyAdminSite(AdminSite):
     site_header = "Remedial System Admin"     # Top left banner
     site_title = "Remedial Admin Portal"      # Browser tab
     index_title = "Welcome to the Admin Dashboard"  # Dashboard title
+    # Use the modern custom index template with cards/portals
+    index_template = "admin/myadmin_index.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "remedial-stats/",
+                self.admin_view(views.remedial_stats),
+                name="remedial_stats",
+            ),
+            path(
+                "remedial-stats/teacher/<int:teacher_id>/",
+                self.admin_view(views.remedial_teacher_details),
+                name="remedial_teacher_details",
+            ),
+            # Deputy normal-classes stats within the admin site
+            path(
+                "normal-stats/",
+                self.admin_view(views.deputy_normal_stats),
+                name="deputy_normal_stats",
+            ),
+            path(
+                "normal-stats/teacher/<int:teacher_id>/",
+                self.admin_view(views.normal_teacher_details),
+                name="deputy_normal_teacher_details",
+            ),
+        ]
+        return custom_urls + urls
 
 
 # ----------------------------
@@ -97,6 +143,43 @@ class WeekAdmin(admin.ModelAdmin):
 
 
 # ----------------------------
+# NormalLessonSlot / NormalLessonAttendance Admin
+# ----------------------------
+
+@admin.register(NormalLessonSlot)
+class NormalLessonSlotAdmin(admin.ModelAdmin):
+    list_display = ("id", "class_group", "teacher", "subject_fk", "day", "start_time", "end_time")
+    list_filter = ("day", "class_group", "teacher")
+    search_fields = ("class_group__name", "teacher__user__first_name", "teacher__user__last_name", "subject_fk__name")
+
+
+@admin.register(NormalLessonAttendance)
+class NormalLessonAttendanceAdmin(admin.ModelAdmin):
+    list_display = ("id", "slot", "date", "status", "marked_by", "marked_at")
+    list_filter = ("status", "date")
+    search_fields = ("slot__class_group__name", "slot__teacher__user__first_name", "slot__teacher__user__last_name")
+
+
+# ----------------------------
+# Joint timetable config Admin
+# ----------------------------
+
+
+@admin.register(JointSubject)
+class JointSubjectAdmin(admin.ModelAdmin):
+    list_display = ("subject", "active")
+    list_filter = ("active",)
+    search_fields = ("subject__name",)
+
+
+@admin.register(JointClassGroupSet)
+class JointClassGroupSetAdmin(admin.ModelAdmin):
+    list_display = ("name", "active")
+    list_filter = ("active",)
+    filter_horizontal = ("class_groups",)
+
+
+# ----------------------------
 # Custom filter for class in LessonRecord
 # ----------------------------
 class ClassGroupFilter(admin.SimpleListFilter):
@@ -175,6 +258,13 @@ class LessonRecordAdmin(admin.ModelAdmin):
     get_teacher.short_description = "Teacher"
 
 
+@admin.register(PasswordResetToken)
+class PasswordResetTokenAdmin(admin.ModelAdmin):
+    list_display = ("user", "code", "is_used", "created_at", "expires_at")
+    search_fields = ("user__username", "user__first_name", "user__last_name", "code")
+    list_filter = ("is_used", "created_at")
+
+
 # ----------------------------
 # Custom Admin Site
 # ----------------------------
@@ -184,6 +274,11 @@ admin_site.register(ClassGroup, ClassGroupAdmin)
 admin_site.register(Teacher, TeacherAdmin)
 admin_site.register(Timetable, TimetableAdmin)
 admin_site.register(Week, WeekAdmin)
+admin_site.register(NormalLessonSlot, NormalLessonSlotAdmin)
+admin_site.register(NormalLessonAttendance, NormalLessonAttendanceAdmin)
 admin_site.register(LessonRecord, LessonRecordAdmin)
+admin_site.register(JointSubject, JointSubjectAdmin)
+admin_site.register(JointClassGroupSet, JointClassGroupSetAdmin)
 admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
+admin_site.register(PasswordResetToken, PasswordResetTokenAdmin)

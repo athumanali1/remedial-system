@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Book, BorrowRecord
-from lessons.models import Student
+from lessons.models import Student, Subject
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from django.urls import reverse
 from .forms import (
     BorrowForm,
@@ -187,6 +188,79 @@ def student_loans(request, student_id: int):
                     rec.delete()
         return redirect("library:student_loans", student_id=student.id)
 
+    # Quick path: add a brand new book and assign it directly to this student
+    if request.method == "POST" and request.POST.get("action") == "quick_add_assign":
+        title = (request.POST.get("quick_title") or "").strip()
+        book_number = (request.POST.get("quick_book_number") or "").strip()
+        price_raw = (request.POST.get("quick_price") or "").strip()
+        expected_date_str = (request.POST.get("quick_expected_return") or "").strip()
+        category_id = (request.POST.get("quick_category") or "").strip()
+        isbn = (request.POST.get("quick_isbn") or "").strip()
+
+        errors = []
+        if not title:
+            errors.append("Title is required for the new book.")
+        if not isbn:
+            errors.append("ISBN is required for the new book.")
+        if not book_number:
+            errors.append("Book number / code is required for the new book.")
+        if not price_raw:
+            errors.append("Price is required for the new book.")
+        if not expected_date_str:
+            errors.append("Expected return date is required.")
+
+        from decimal import Decimal, InvalidOperation
+        from datetime import datetime
+
+        price = None
+        if price_raw:
+            try:
+                price = Decimal(price_raw)
+            except InvalidOperation:
+                errors.append("Price must be a valid number.")
+
+        expected_return_date = None
+        if expected_date_str:
+            try:
+                expected_return_date = datetime.strptime(expected_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                errors.append("Expected return date must be a valid date.")
+
+        category = None
+        if category_id:
+            try:
+                category = Subject.objects.get(id=category_id)
+            except Subject.DoesNotExist:
+                # If lookup fails, leave category empty instead of blocking save
+                category = None
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+            return redirect("library:student_loans", student_id=student.id)
+
+        # All required fields are valid; create book and immediate loan
+        book = Book.objects.create(
+            title=title,
+            category=category,
+            isbn=isbn,
+            book_number=book_number,
+            price=price,
+            status="available",
+        )
+
+        BorrowRecord.objects.create(
+            book=book,
+            student=student,
+            assigned_by=request.user,
+            expected_return_date=expected_return_date,
+            status="borrowed",
+            notes="",
+        )
+
+        messages.success(request, "Book created and assigned to student.")
+        return redirect("library:student_loans", student_id=student.id)
+
     # Handle assigning one or many books to this student
     if request.method == "POST" and request.POST.get("action") == "assign_books":
         assign_form = StudentAssignBooksForm(request.POST)
@@ -231,6 +305,7 @@ def student_loans(request, student_id: int):
         "lost_count": lost_count,
         "total_lost_amount": total_lost_amount,
         "assign_form": assign_form,
+        "categories": Subject.objects.all().order_by("name"),
     }
     return render(request, "library/student_loans.html", context)
 

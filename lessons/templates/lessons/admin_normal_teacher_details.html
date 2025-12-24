@@ -4,7 +4,44 @@
 {% block title %}Normal Lessons - {{ teacher.user.get_full_name|default:teacher.user.username }}{% endblock %}
 
 {% block content %}
-<h1>Normal Lessons - {{ teacher.user.get_full_name|default:teacher.user.username }}</h1>
+<!-- Profile header band (same style as teacher dashboard) -->
+<div style="
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(245, 248, 252, 0.95)),
+                      url('/media/LOGO/school%20badge.jpg');
+    background-size: cover;
+    background-position: left center;
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    margin-bottom: 16px;
+  ">
+  <div class="profile-container" style="display:flex; align-items:center; gap:16px; color:#ffffff; margin-bottom:0;">
+    <form action="{% url 'update_profile_picture' %}" method="post" enctype="multipart/form-data" style="margin:0;">
+      {% csrf_token %}
+      <label for="profile_picture" style="cursor:pointer; display:inline-block;">
+        {% if teacher.profile_picture %}
+          <img src="{{ teacher.profile_picture.url }}" alt="Profile Picture">
+        {% else %}
+          <img src="{% static 'lessons/img/default_profile.png' %}" alt="Default Profile Picture">
+        {% endif %}
+      </label>
+      <input type="file" name="profile_picture" id="profile_picture" style="display:none;" onchange="this.form.submit();">
+    </form>
+
+    {% if teacher.profile_picture %}
+    <form action="{% url 'update_profile_picture' %}" method="post" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" name="delete_picture" value="1" class="logout-btn">Delete</button>
+    </form>
+    {% endif %}
+
+    <div style="flex:1; text-align:center;">
+      <div style="font-size:1.4rem; font-weight:700; color:#ffffff;">Lukore Secondary School</div>
+      <div style="font-size:0.95rem; margin-top:4px; color:#e5e7eb;">
+        Normal Lessons - {{ teacher.user.get_full_name|default:teacher.user.username }}
+      </div>
+    </div>
+  </div>
+</div>
 
 <div style="margin-bottom:10px; display:flex; gap:8px; align-items:center; justify-content:flex-end;">
   <button type="button" class="print-btn">Print / Download</button>
@@ -124,6 +161,6 @@
 </table>
 </div>
 
-<p style="margin-top:16px;"><a href="{% url 'deputy:deputy_normal_stats' %}?teacher={{ teacher.id }}&week={{ selected_week }}&normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">← Back to summary</a></p>
+<p style="margin-top:16px;"><a href="{% url 'myadmin:deputy_normal_stats' %}?teacher={{ teacher.id }}&week={{ selected_week }}&normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">← Back to summary</a></p>
 
 {% endblock %}

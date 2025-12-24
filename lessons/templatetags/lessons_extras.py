@@ -54,3 +54,14 @@ def short_subject(name):
         "GEOGRAPHY": "Geo",
     }
     return mapping.get(key, name)
+
+
+@register.filter
+def has_group(user, group_name):
+    """Return True if the user belongs to the given Django auth group (case-insensitive)."""
+    if not getattr(user, "is_authenticated", False):
+        return False
+    try:
+        return user.groups.filter(name__iexact=group_name).exists()
+    except Exception:
+        return False

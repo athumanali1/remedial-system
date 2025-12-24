@@ -5,9 +5,18 @@
 
 {% block content %}
 
-<!-- Profile Section -->
-<div class="profile-container">
-    <form action="{% url 'update_profile_picture' %}" method="post" enctype="multipart/form-data">
+<!-- Profile Section with school badge background like website home page -->
+<div style="
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(245, 248, 252, 0.95)),
+                      url('/media/LOGO/school%20badge.jpg');
+    background-size: cover;
+    background-position: left center;
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    margin-bottom: 16px;
+  ">
+  <div class="profile-container" style="display:flex; align-items:center; gap:16px; color:#ffffff;">
+    <form action="{% url 'update_profile_picture' %}" method="post" enctype="multipart/form-data" style="margin:0;">
         {% csrf_token %}
         <label for="profile_picture" style="cursor:pointer; display:inline-block;">
             {% if teacher.profile_picture %}
@@ -15,26 +24,23 @@
             {% else %}
                 <img src="{% static 'lessons/img/default_profile.png' %}" alt="Default Profile Picture">
             {% endif %}
-            <div style="text-align:center; font-size:0.8em; color:#007BFF;">Click to change</div>
         </label>
         <input type="file" name="profile_picture" id="profile_picture" style="display:none;" onchange="this.form.submit();">
     </form>
 
     {% if teacher.profile_picture %}
-    <form action="{% url 'update_profile_picture' %}" method="post">
+    <form action="{% url 'update_profile_picture' %}" method="post" style="margin:0;">
         {% csrf_token %}
         <button type="submit" name="delete_picture" value="1" class="logout-btn">Delete</button>
     </form>
     {% endif %}
 
-    <h1>Welcome, {{ teacher.user.get_full_name }}</h1>
+    <div style="flex:1; text-align:center;">
+      <div style="font-size:1.4rem; font-weight:700; color:#ffffff;">Lukore Secondary School</div>
+      <div style="font-size:0.95rem; margin-top:4px; color:#e5e7eb;">Welcome, {{ teacher.user.get_full_name }}</div>
+    </div>
+  </div>
 </div>
-
-<!-- Logout -->
-<form action="{% url 'logout' %}" method="post" style="margin-bottom:30px;">
-    {% csrf_token %}
-    <button type="submit" class="logout-btn">Logout</button>
-</form>
 
 <!-- Filters -->
 <div class="filters">

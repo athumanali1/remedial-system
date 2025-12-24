@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
+{% load lessons_extras %}
 {% block extrastyle %}
 <link rel="stylesheet" href="{% static 'lessons/css/admin.css' %}">
 <style>
@@ -15,6 +16,24 @@
   <h1>Admin Dashboard</h1>
   <div>Welcome to the Admin Portal</div>
 </div>
+
+{# Deputy dashboard section: visible to users in the 'Deputy' group #}
+{% if request.user|has_group:'Deputy' %}
+<div class="quick-grid">
+  <div class="qcard">
+    <div><strong>Deputy Dashboard</strong><div>Normal classes administration</div></div>
+    <a href="{% url 'myadmin:deputy_normal_stats' %}">Open Deputy Dashboard</a>
+  </div>
+  <div class="qcard">
+    <div><strong>Timetable Builder</strong><div>Configure Mon–Fri schedule</div></div>
+    <a href="{% url 'timetable_builder' %}">Open</a>
+  </div>
+  <div class="qcard">
+    <div><strong>Generate Week Lessons</strong><div>Create lesson records from timetable</div></div>
+    <a href="{% url 'generate_week_lessons' %}">Open</a>
+  </div>
+</div>
+{% endif %}
 
 {% if perms.library.view_book and not request.user.is_superuser %}
 <div class="quick-grid">

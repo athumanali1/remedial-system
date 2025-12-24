@@ -35,6 +35,11 @@
 
 <h2>Timetable Builder (Mon–Fri)</h2>
 
+<div style="margin-top:8px; margin-bottom:8px; display:flex; gap:8px;">
+  <button type="button" onclick="window.history.back();">Back</button>
+  <a href="{% url 'timetable_builder' %}" class="btn">Home</a>
+</div>
+
 <!-- Choose which classes to display in the grid -->
 <form method="get" style="margin-bottom:16px;">
   <label for="classes"><strong>Select class groups to display</strong></label><br>
@@ -168,6 +173,17 @@
     });
 
     // Auto-copy joint subjects within joint class groups
+    // Expose for debugging in console
+    window.JOINT_SUBJECT_IDS = JOINT_SUBJECT_IDS;
+    window.JOINT_CLASS_GROUP = JOINT_CLASS_GROUP;
+    window.JOINT_GROUP_MEMBERS = JOINT_GROUP_MEMBERS;
+
+    console.log('Timetable builder joint config:', {
+      JOINT_SUBJECT_IDS: Array.from(JOINT_SUBJECT_IDS || []),
+      JOINT_CLASS_GROUP: JOINT_CLASS_GROUP,
+      JOINT_GROUP_MEMBERS: JOINT_GROUP_MEMBERS,
+    });
+
     document.querySelectorAll('.tt-cell .lesson-select select').forEach(function(sel) {
       sel.addEventListener('change', function() {
         var val = sel.value || '';

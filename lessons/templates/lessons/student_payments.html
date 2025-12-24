@@ -4,59 +4,55 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Record Student Payments</h2>
- <button id="addStudentBtn" style="margin-bottom: 10px;">Add Student</button>
-    {% if students %}
-        <button id="addStudentBtn" style="margin-bottom: 10px;">Add Student</button>
-        <input type="text" id="searchInput" class="search-box" placeholder="Search students...">
+    <button id="addStudentBtn" style="margin-bottom: 10px;">Add Student</button>
+    <input type="text" id="searchInput" class="search-box" placeholder="Search students...">
 
-        <form method="post" id="paymentsForm">
-            {% csrf_token %}
-            <table id="studentTable" class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th onclick="sortTable(0)">First Name ▲▼</th>
-                        <th onclick="sortTable(1)">Last Name ▲▼</th>
-                        <th onclick="sortTable(2)">Admission No. ▲▼</th>
-                        <th>Amount Paid</th>
-                        <th>Balance</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in students %}
-                    <tr data-id="{{ student.id }}">
-                        <td class="first-name">{{ student.first_name }}</td>
-                        <td class="last-name">{{ student.last_name }}</td>
-                        <td class="admission-no">{{ student.admission_number }}</td>
-                        <td>
-                            <input type="number" step="0.01" name="amount_{{ student.id }}" placeholder="Enter amount" 
-                                   value="{{ student.amount_paid }}" onchange="updatePayment({{ student.id }}, this.value)">
-                        </td>
-                        <td class="balance">{{ student.balance }}</td>
-                        <td>
-                            <button type="button" class="action-btn" onclick="editStudent({{ student.id }})">Edit</button>
-                            <button type="button" class="delete-btn" onclick="deleteStudent({{ student.id }})">Delete</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <button type="submit" class="btn btn-success">Submit Payments</button>
-        </form>
+    <form method="post" id="paymentsForm">
+        {% csrf_token %}
+        <table id="studentTable" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">First Name ▲▼</th>
+                    <th onclick="sortTable(1)">Last Name ▲▼</th>
+                    <th onclick="sortTable(2)">Admission No. ▲▼</th>
+                    <th>Amount Paid</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr data-id="{{ student.id }}">
+                    <td class="first-name">{{ student.first_name }}</td>
+                    <td class="last-name">{{ student.last_name }}</td>
+                    <td class="admission-no">{{ student.admission_number }}</td>
+                    <td>
+                        <input type="number" step="0.01" name="amount_{{ student.id }}" placeholder="Enter amount" 
+                               value="{{ student.amount_paid }}" onchange="updatePayment({{ student.id }}, this.value)">
+                    </td>
+                    <td class="balance">{{ student.balance }}</td>
+                    <td>
+                        <button type="button" class="action-btn" onclick="editStudent({{ student.id }})">Edit</button>
+                        <button type="button" class="delete-btn" onclick="deleteStudent({{ student.id }})">Delete</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="no-students-row"><td colspan="6">No students found for your class.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-success">Submit Payments</button>
+    </form>
 
-        <!-- Statistics panel -->
-        <div id="statistics" style="margin-top:20px; background:#f4f4f4; padding:10px; border-radius:6px;">
-            <strong>Statistics:</strong>
-            <span>Total Students: <span id="statTotal">{{ total_students }}</span></span> |
-            <span>Total Paid: <span id="statPaid">{{ total_paid }}</span></span> |
-            <span>Total Unpaid: <span id="statUnpaid">{{ total_unpaid }}</span></span> |
-            <span>Fully Paid: <span id="statFullyPaid">{{ fully_paid }}</span></span> |
-            <span>Partial: <span id="statPartial">{{ partial_paid }}</span></span>
-        </div>
-
-    {% else %}
-        <p>No students found for your class.</p>
-    {% endif %}
+    <!-- Statistics panel -->
+    <div id="statistics" style="margin-top:20px; background:#f4f4f4; padding:10px; border-radius:6px;">
+        <strong>Statistics:</strong>
+        <span>Total Students: <span id="statTotal">{{ total_students }}</span></span> |
+        <span>Total Paid: <span id="statPaid">{{ total_paid }}</span></span> |
+        <span>Total Unpaid: <span id="statUnpaid">{{ total_unpaid }}</span></span> |
+        <span>Fully Paid: <span id="statFullyPaid">{{ fully_paid }}</span></span> |
+        <span>Partial: <span id="statPartial">{{ partial_paid }}</span></span>
+    </div>
 </div>
 
 <!-- Modal for Add/Edit -->
@@ -153,12 +149,25 @@ saveBtn.addEventListener('click', () => {
     fetch(url, { method:'POST', body: formData })
         .then(res => res.json())
         .then(data => {
-            if(editStudentId){
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            if (editStudentId) {
                 const row = document.querySelector(`tr[data-id="${editStudentId}"]`);
-                row.querySelector('.first-name').textContent = firstName;
-                row.querySelector('.last-name').textContent = lastName;
-                row.querySelector('.admission-no').textContent = admissionNo;
+                if (row) {
+                    row.querySelector('.first-name').textContent = firstName;
+                    row.querySelector('.last-name').textContent = lastName;
+                    row.querySelector('.admission-no').textContent = admissionNo;
+                }
             } else {
+                // Remove placeholder row if present
+                const placeholder = document.querySelector('#studentTable tbody .no-students-row');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+
                 const row = document.createElement('tr');
                 row.setAttribute('data-id', data.id);
                 row.innerHTML = `
@@ -173,7 +182,9 @@ saveBtn.addEventListener('click', () => {
                         <button type="button" class="delete-btn" onclick="deleteStudent(${data.id})">Delete</button>
                     </td>
                 `;
-                studentTableBody.appendChild(row);
+                if (studentTableBody) {
+                    studentTableBody.appendChild(row);
+                }
             }
 
             editStudentId = null;

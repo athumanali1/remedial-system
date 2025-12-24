@@ -1,6 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 {% load static %}
+{% load lessons_extras %}
 
 {% block extrastyle %}
 <link rel="stylesheet" href="{% static 'lessons/css/admin.css' %}">
@@ -22,10 +23,10 @@
   <div class="quick-grid">
     <div class="qcard">
       <div><strong>Normal Lessons Stats</strong><div>Daily/weekly overview</div></div>
-      <a href="{% url 'deputy:deputy_normal_stats' %}">Open</a>
+      <a href="{% url 'myadmin:deputy_normal_stats' %}">Open</a>
     </div>
 
-    {% if request.user.is_authenticated and request.user.username|lower == 'deputy1' %}
+    {% if request.user.is_authenticated and request.user|has_group:'Deputy' %}
     <div class="qcard">
       <div><strong>Timetable Builder</strong><div>Configure Mon–Fri schedule</div></div>
       <a href="{% url 'timetable_builder' %}">Open</a>

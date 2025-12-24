@@ -1,6 +1,20 @@
 {% extends 'lessons/base.html' %}
 {% block title %}Library{% endblock %}
 {% block content %}
+
+<div style="background:#0f766e;color:white;padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <div>
+    <h1 style="margin:0;font-size:22px;">📖 Library catalog</h1>
+    <p style="margin:4px 0 0;font-size:13px;">Browse all books in the school library.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+    <a href="{% url 'library:dashboard' %}"
+       style="background:white;color:#0f766e;padding:4px 10px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:600;">
+      🏠 Library Home
+    </a>
+  </div>
+</div>
+
 <h2>Library catalog</h2>
 <table>
   <thead><tr><th>Title</th><th>Category</th><th>Book #</th><th>Status</th><th>Price</th></tr></thead>

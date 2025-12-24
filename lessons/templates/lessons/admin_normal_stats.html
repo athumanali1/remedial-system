@@ -18,9 +18,8 @@
 {% endif %}
 
 <div class="tabs" style="margin: 12px 0;">
-  <a class="btn {% if request.resolver_match.url_name == 'deputy_normal_stats' %}active{% endif %}" href="{% url 'deputy:deputy_normal_stats' %}">Overview</a>
-  <a class="btn" href="{% url 'deputy:lessons_normallessonslot_changelist' %}">Lesson slots</a>
-  <a class="btn" href="{% url 'deputy:lessons_normallessonattendance_changelist' %}">Lesson attendances</a>
+  <a class="btn {% if request.resolver_match.url_name == 'deputy_normal_stats' %}active{% endif %}" href="{% url 'myadmin:deputy_normal_stats' %}">Overview</a>
+  {# Legacy deputy admin links removed; main deputy dashboard is now via custom views #}
 </div>
 
 <div class="filters" style="margin-bottom:16px;">
@@ -59,7 +58,7 @@
     <input type="date" name="normal_date" value="{{ normal_selected_date }}" />
 
     <button type="submit">Apply</button>
-    <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tu=t?t.value:'';var wu=w?w.value:''; var url = '{% url 'deputy:deputy_normal_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu); window.location.href = url; })()">Print / Download</button>
+    <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tu=t?t.value:'';var wu=w?w.value:''; var url = '{% url 'myadmin:deputy_normal_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu); window.location.href = url; })()">Print / Download</button>
   </form>
 </div>
 
@@ -89,7 +88,7 @@
       <tr>
         <td>
           {% if item.teacher %}
-            <a href="{% url 'deputy:deputy_normal_teacher_details' item.teacher.id %}?normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">
+            <a href="{% url 'myadmin:deputy_normal_teacher_details' item.teacher.id %}?week={{ selected_week }}&normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">
               {{ item.teacher.user.get_full_name|default:item.teacher.user.username }}
             </a>
           {% else %}
@@ -110,9 +109,8 @@
 
 {% if selected_teacher %}
   <p style="margin-top:24px;">
-    <a class="button" href="{% url 'deputy:deputy_normal_teacher_details' selected_teacher %}?normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">View detailed slots for selected teacher →</a>
+    <a class="button" href="{% url 'myadmin:deputy_normal_teacher_details' selected_teacher %}?week={{ selected_week }}&normal_day={{ normal_selected_day }}&normal_date={{ normal_selected_date }}">View detailed slots for selected teacher →</a>
   </p>
 {% endif %}
 
 {% endblock %}
-

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 {% load static %}
+{% load lessons_extras %}
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Remedial System{% endblock %}</title>
@@ -26,15 +27,15 @@
                 {% if not request.user.is_staff %}
                     <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
                     <a href="{% url 'teacher_dashboard' %}?tab=remedial" style="margin-left:12px;">Remedial</a>
-                    <a href="{% url 'teacher_dashboard' %}?tab=normal" style="margin-left:8px;">Normal</a>
+                    <a href="{% url 'teacher_normal_stats' %}" style="margin-left:8px;">Normal</a>
                     <a href="{% url 'teacher_normal_timetable' %}"
                        style="margin-left:8px;"
                        class="{% if current_view == 'teacher_normal_timetable' %}nav-active{% endif %}">
                         View Timetable
                     </a>
 
-                {# ---------------- Deputy tools (specific deputy account) ---------------- #}
-                {% elif request.user.username|lower == 'deputy1' %}
+                {# ---------------- Deputy tools (users in 'Deputy' group) ---------------- #}
+                {% elif request.user|has_group:'Deputy' %}
                     <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
                     <a href="{% url 'timetable_builder' %}" style="margin-left:12px;">Timetable Builder</a>
                     <a href="{% url 'generate_week_lessons' %}" style="margin-left:12px;">Generate Week Lessons</a>
@@ -48,6 +49,7 @@
 
                 {# ---------------- Other staff (e.g. library) ---------------- #}
                 {% else %}
+                    <a href="{% url 'library:dashboard' %}">Library</a>
                 {% endif %}
 
             {% endwith %}
@@ -57,6 +59,19 @@
             <a href="{% url 'login' %}">Login</a>
         {% endif %}
     </nav>
+
+    {% if messages %}
+      <div style="max-width:1100px; margin:8px auto 0; padding:0 16px;">
+        {% for message in messages %}
+          <div style="margin-bottom:6px; padding:8px 10px; border-radius:6px; font-size:13px;
+                      {% if message.tags == 'error' %}background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;
+                      {% elif message.tags == 'success' %}background:#dcfce7;color:#166534;border:1px solid #bbf7d0;
+                      {% else %}background:#e5e7eb;color:#111827;border:1px solid #d4d4d8;{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <div class="content">
         {% block content %}{% endblock %}

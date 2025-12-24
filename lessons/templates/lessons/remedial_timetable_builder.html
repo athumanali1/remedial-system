@@ -35,6 +35,11 @@
 
 <h2>Remedial Timetable Builder (Mon–Sat)</h2>
 
+<div style="margin-top:8px; margin-bottom:8px; display:flex; gap:8px;">
+  <button type="button" onclick="window.history.back();">Back</button>
+  <a href="{% url 'remedial_timetable_builder' %}" class="btn">Home</a>
+</div>
+
 <!-- Choose which classes to display in the grid -->
 <form method="get" style="margin-bottom:16px;">
   <label for="classes"><strong>Select class groups to display</strong></label><br>
