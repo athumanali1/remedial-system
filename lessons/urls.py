@@ -33,6 +33,9 @@ urlpatterns = [
     path('edit-student-ajax/<int:student_id>/', views.edit_student_ajax, name='edit_student_ajax'),
     path('delete-student-ajax/<int:student_id>/', views.delete_student_ajax, name='delete_student_ajax'),
     path('admin-payments/', views.admin_payments, name='admin_payments'),
+    
+    # External trigger for notifications
+    path('trigger-notifications/', views.trigger_notifications, name='trigger_notifications'),
 ]
 
 if settings.DEBUG:

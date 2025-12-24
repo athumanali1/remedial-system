@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.conf import settings
+from django.core.management import call_command
 
 from django.db import models, IntegrityError
 from django.db.models import Sum, F, Count, ExpressionWrapper, FloatField
@@ -2282,3 +2284,15 @@ def admin_payments(request):
         "class_stats": class_stats,
     }
     return render(request, "lessons/admin_payments.html", context)
+
+
+@csrf_exempt
+@require_POST
+def trigger_notifications(request):
+    """External trigger for class notifications (for cron services)."""
+    try:
+        # Call the management command
+        call_command('send_class_notifications')
+        return JsonResponse({'status': 'success', 'message': 'Notifications processed'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
