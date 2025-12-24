@@ -360,7 +360,32 @@ def library_add_student(request):
     else:
         form = LibraryStudentForm()
 
-    return render(request, 'library/add_student.html', {"form": form})
+    # Get all students for display
+    students = Student.objects.all().select_related('class_group').order_by('last_name', 'first_name')
+
+    return render(request, 'library/add_student.html', {"form": form, "students": students})
+
+
+@user_passes_test(is_admin)
+def delete_student(request, student_id):
+    """Delete a student with confirmation.
+
+    If the student no longer exists (e.g. already deleted), redirect back to the
+    Add Student page with an error message instead of showing a 404 page.
+    """
+
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        messages.error(request, "That student could not be found (maybe already deleted).")
+        return redirect('library:add_student')
+
+    if request.method == 'POST':
+        student.delete()
+        messages.success(request, f'Student {student.first_name} {student.last_name} has been deleted.')
+        return redirect('library:add_student')
+
+    return render(request, 'library/confirm_delete_student.html', {'student': student})
 
 
 @user_passes_test(is_admin)

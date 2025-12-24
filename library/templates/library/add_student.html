@@ -15,7 +15,7 @@
   </div>
 </div>
 
-<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
   <form method="post">
     {% csrf_token %}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
@@ -39,4 +39,38 @@
     <button type="submit" style="margin-top:10px;background:#0f766e;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer;">Save student</button>
   </form>
 </div>
+
+{% if students %}
+<div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+  <h2 style="margin:0 0 8px 0;font-size:16px;">Existing students</h2>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:#f3f4f6;">
+          <th style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:left;">Name</th>
+          <th style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:left;">Adm No</th>
+          <th style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:left;">Class</th>
+          <th style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ s.first_name }} {{ s.last_name }}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ s.admission_number }}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ s.class_group.name }}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;text-align:right;">
+            <a href="{% url 'library:delete_student' s.id %}"
+               style="color:#b91c1c;font-weight:600;text-decoration:none;font-size:12px;">
+              Delete
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

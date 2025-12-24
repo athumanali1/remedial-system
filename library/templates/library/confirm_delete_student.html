@@ -1,0 +1,30 @@
+{% extends 'lessons/base.html' %}
+{% block title %}Delete Student{% endblock %}
+{% block content %}
+
+<div style="background:#b91c1c;color:white;padding:14px 18px;border-radius:10px;margin-bottom:16px;">
+  <h1 style="margin:0;font-size:20px;">Delete student</h1>
+  <p style="margin:4px 0 0;font-size:13px;">You are about to permanently delete this student from the system.</p>
+</div>
+
+<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;">
+  <p style="margin:0 0 12px 0;font-size:14px;">
+    Are you sure you want to delete student
+    <strong>{{ student.first_name }} {{ student.last_name }}</strong>
+    (Adm No: {{ student.admission_number }})?
+  </p>
+
+  <form method="post" style="display:flex;gap:8px;align-items:center;">
+    {% csrf_token %}
+    <button type="submit"
+            style="background:#b91c1c;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer;">
+      Yes, delete student
+    </button>
+    <a href="{% url 'library:add_student' %}"
+       style="background:#e5e7eb;color:#111827;border-radius:6px;padding:8px 16px;font-size:14px;text-decoration:none;">
+      Cancel
+    </a>
+  </form>
+</div>
+
+{% endblock %}

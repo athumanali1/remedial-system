@@ -1,0 +1,103 @@
+{% extends "lessons/base.html" %}
+{% load static %}
+
+{% block title %}Normal Lessons - {{ teacher.user.get_full_name|default:teacher.user.username }}{% endblock %}
+
+{% block content %}
+
+<!-- Profile Section with school badge background (only for teacher dashboard) -->
+<div style="
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(245, 248, 252, 0.95)),
+                      url('/media/LOGO/school%20badge.jpg');
+    background-size: cover;
+    background-position: left center;
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    margin-bottom: 16px;
+  ">
+  <div class="profile-container" style="display:flex; align-items:center; gap:16px; color:#ffffff;">
+    <form action="{% url 'update_profile_picture' %}" method="post" enctype="multipart/form-data" style="margin:0;">
+        {% csrf_token %}
+        <label for="profile_picture" style="cursor:pointer; display:inline-block;">
+            {% if teacher.profile_picture %}
+                <img src="{{ teacher.profile_picture.url }}" alt="Profile Picture">
+            {% else %}
+                <img src="{% static 'lessons/img/default_profile.png' %}" alt="Default Profile Picture">
+            {% endif %}
+        </label>
+        <input type="file" name="profile_picture" id="profile_picture" style="display:none;" onchange="this.form.submit();">
+    </form>
+
+    {% if teacher.profile_picture %}
+    <form action="{% url 'update_profile_picture' %}" method="post" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" name="delete_picture" value="1" class="logout-btn">Delete</button>
+    </form>
+    {% endif %}
+
+    <div style="flex:1; text-align:center;">
+      <div style="font-size:1.4rem; font-weight:700; color:#ffffff;">Lukore Secondary School</div>
+      <div style="font-size:0.95rem; margin-top:4px; color:#e5e7eb;">Welcome, {{ teacher.user.get_full_name }}</div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-bottom:10px; display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+  <button type="button" class="print-btn">Print / Download</button>
+</div>
+
+<form method="get" style="margin-bottom: 8px;">
+  <label>Week:</label>
+  <select name="week">
+    <option value="">All</option>
+    {% for w in weeks %}
+      <option value="{{ w.id }}" {% if selected_week == w.id %}selected{% endif %}>
+        Week {{ w.number }}
+      </option>
+    {% endfor %}
+  </select>
+  <button type="submit">Apply</button>
+</form>
+
+<div style="margin-bottom:8px;">
+  <!-- Summary -->
+  <div class="cards-container">
+    <div class="card"><h3>Total</h3><p>{{ total }}</p></div>
+    <div class="card"><h3>Attended</h3><p>{{ attended }}</p></div>
+    <div class="card"><h3>Not Attended</h3><p>{{ not_attended }}</p></div>
+    <div class="card"><h3>Pending</h3><p>{{ pending }}</p></div>
+  </div>
+</div>
+
+<div class="admin-scroll scroll-x scroll-viewport">
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Day</th>
+      <th>Time</th>
+      <th>Subject</th>
+      <th>Class(es)</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.date|date:"Y-m-d"|default:"-" }}</td>
+      <td>{{ row.day|default:"-" }}</td>
+      <td>{{ row.start|time:"H:i"|default:"-" }} - {{ row.end|time:"H:i"|default:"-" }}</td>
+      <td>{{ row.subject_name|default:"-" }}</td>
+      <td>{{ row.class_label|default:"-" }}</td>
+      <td>
+        <span>{{ row.status|default:"Pending" }}</span>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">No normal lessons found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}

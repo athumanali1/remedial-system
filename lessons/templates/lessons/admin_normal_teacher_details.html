@@ -4,6 +4,12 @@
 {% block title %}Normal Lessons - {{ teacher.user.get_full_name|default:teacher.user.username }}{% endblock %}
 
 {% block content %}
+
+<div style="margin-bottom:16px; padding:12px; background:#f8f9fa; border-radius:8px; border-left:4px solid #007bff;">
+  <h3 style="margin:0; color:#333;">{{ teacher.user.get_full_name|default:teacher.user.username }}</h3>
+  <p style="margin:4px 0 0 0; color:#666; font-size:0.9em;">Normal Lessons Attendance</p>
+</div>
+
 <div style="margin-bottom:10px; display:flex; gap:8px; align-items:center; justify-content:flex-end;">
   <button type="button" class="print-btn">Print / Download</button>
 </div>

@@ -75,8 +75,28 @@ def remedial_stats(request):
     normal deputy stats view.
     """
 
+    from datetime import datetime
+
     selected_week = request.GET.get("week")
     selected_teacher = request.GET.get("teacher")
+
+    # Default to most recent week if no week is selected
+    if not selected_week:
+        try:
+            # First try to find current week
+            current_week = Week.objects.filter(
+                start_date__lte=datetime.now().date(),
+                end_date__gte=datetime.now().date()
+            ).first()
+            if current_week:
+                selected_week = str(current_week.id)
+            else:
+                # If no current week, get the most recent week
+                recent_week = Week.objects.order_by('-start_date').first()
+                if recent_week:
+                    selected_week = str(recent_week.id)
+        except:
+            pass
 
     # Base queryset: filtered LessonRecords
     lessons = LessonRecord.objects.select_related("timetable", "timetable__subject_fk", "timetable__teacher")
@@ -282,6 +302,24 @@ def deputy_normal_stats(request):
     selected_teacher = request.GET.get("teacher")
     normal_selected_day = request.GET.get("normal_day")
     normal_selected_date = request.GET.get("normal_date")
+
+    # Default to most recent week if no week is selected
+    if not selected_week:
+        try:
+            # First try to find current week
+            current_week = Week.objects.filter(
+                start_date__lte=datetime.now().date(),
+                end_date__gte=datetime.now().date()
+            ).first()
+            if current_week:
+                selected_week = str(current_week.id)
+            else:
+                # If no current week, get the most recent week
+                recent_week = Week.objects.order_by('-start_date').first()
+                if recent_week:
+                    selected_week = str(recent_week.id)
+        except:
+            pass
 
     attendances = NormalLessonAttendance.objects.select_related("slot__teacher", "slot__subject_fk")
 
@@ -634,6 +672,25 @@ def teacher_normal_stats(request):
         return redirect("website:home")
 
     raw_week = request.GET.get("week")
+    
+    # Default to most recent week if no week is selected
+    if not raw_week:
+        try:
+            # First try to find current week
+            current_week = Week.objects.filter(
+                start_date__lte=datetime.now().date(),
+                end_date__gte=datetime.now().date()
+            ).first()
+            if current_week:
+                raw_week = str(current_week.id)
+            else:
+                # If no current week, get the most recent week
+                recent_week = Week.objects.order_by('-start_date').first()
+                if recent_week:
+                    raw_week = str(recent_week.id)
+        except:
+            pass
+    
     try:
         week_id = int(raw_week) if raw_week and str(raw_week).isdigit() else None
     except (TypeError, ValueError):
@@ -641,8 +698,9 @@ def teacher_normal_stats(request):
     normal_selected_day = request.GET.get("normal_day")
     normal_selected_date = request.GET.get("normal_date")
 
-    # Handle inline status change POST from the template (teacher-facing)
-    if request.method == "POST":
+    # Handle inline status change POST from the template - only for deputy/admin
+    # Teachers can only view, not edit attendance
+    if request.method == "POST" and (request.user.is_superuser or request.user.groups.filter(name='Deputy').exists()):
         slot_ids = request.POST.getlist("slot_ids")
         new_status = request.POST.get("status")
         normal_selected_day = request.POST.get("normal_day") or None
@@ -724,6 +782,7 @@ def teacher_normal_stats(request):
                 base_label = " ".join(parts[:2])
 
             rows_map[key] = {
+                "date": att.date,
                 "day": slot.day,
                 "start": slot.start_time,
                 "end": slot.end_time,
@@ -756,9 +815,10 @@ def teacher_normal_stats(request):
         "attended": attended,
         "not_attended": not_attended,
         "pending": pending,
+        "is_deputy": request.user.groups.filter(name='Deputy').exists(),
     }
 
-    return render(request, "lessons/admin_normal_teacher_details.html", context)
+    return render(request, "lessons/teacher_normal_stats.html", context)
 
 
 def debug_load_timetables(request):
@@ -1439,11 +1499,30 @@ def teacher_normal_timetable(request):
     teachers.
     """
 
-    from datetime import time
+    from datetime import time, datetime
 
     teacher = get_object_or_404(Teacher, user=request.user)
 
     selected_week_id = request.GET.get("week")
+    
+    # Default to most recent week if no week is selected
+    if not selected_week_id:
+        try:
+            # First try to find current week
+            current_week = Week.objects.filter(
+                start_date__lte=datetime.now().date(),
+                end_date__gte=datetime.now().date()
+            ).first()
+            if current_week:
+                selected_week_id = str(current_week.id)
+            else:
+                # If no current week, get the most recent week
+                recent_week = Week.objects.order_by('-start_date').first()
+                if recent_week:
+                    selected_week_id = str(recent_week.id)
+        except:
+            pass
+    
     weeks = Week.objects.all()
     try:
         selected_week = Week.objects.get(id=selected_week_id) if selected_week_id else None
@@ -1567,6 +1646,7 @@ def teacher_normal_timetable(request):
         normal_color_grid[day_code] = row
 
     context = {
+        "teacher": teacher,
         "weeks": weeks,
         "selected_week": selected_week.id if selected_week else None,
         "normal_days": normal_days,
@@ -1586,9 +1666,30 @@ def teacher_remedial_timetable(request):
     time structure, similar in spirit to the normal timetable view.
     """
 
+    from datetime import datetime
+
     teacher = get_object_or_404(Teacher, user=request.user)
 
     selected_week_id = request.GET.get("week")
+    
+    # Default to most recent week if no week is selected
+    if not selected_week_id:
+        try:
+            # First try to find current week
+            current_week = Week.objects.filter(
+                start_date__lte=datetime.now().date(),
+                end_date__gte=datetime.now().date()
+            ).first()
+            if current_week:
+                selected_week_id = str(current_week.id)
+            else:
+                # If no current week, get the most recent week
+                recent_week = Week.objects.order_by('-start_date').first()
+                if recent_week:
+                    selected_week_id = str(recent_week.id)
+        except:
+            pass
+    
     weeks = Week.objects.all()
     try:
         selected_week = Week.objects.get(id=selected_week_id) if selected_week_id else None
@@ -1598,13 +1699,25 @@ def teacher_remedial_timetable(request):
     days, slots = _fixed_remedial_structure()
 
     # Fetch remedial Timetable entries for this teacher matching the
-    # remedial time slots and days.
-    remedial_qs = (
-        Timetable.objects
-        .filter(teacher=teacher, day__in=days, start_time__in=[st for (st, _et) in slots])
-        .select_related("subject_fk")
-        .prefetch_related("class_groups")
-    )
+    # remedial time slots and days, but only if they have LessonRecords
+    if selected_week:
+        week_id = selected_week.id
+        # Get Timetable entries that have LessonRecords for the selected week
+        remedial_qs = (
+            Timetable.objects
+            .filter(
+                teacher=teacher, 
+                day__in=days, 
+                start_time__in=[st for (st, _et) in slots],
+                lessonrecord__week_id=week_id
+            )
+            .select_related("subject_fk")
+            .prefetch_related("class_groups")
+            .distinct()
+        )
+    else:
+        # If no week selected, show no slots (since no LessonRecords to display)
+        remedial_qs = Timetable.objects.none()
 
     days_set = set(days)
 
@@ -1717,6 +1830,7 @@ def teacher_remedial_timetable(request):
         remedial_color_grid[day_code] = row
 
     context = {
+        "teacher": teacher,
         "weeks": weeks,
         "selected_week": selected_week.id if selected_week else None,
         "days": remedial_days,
