@@ -32,7 +32,9 @@ ALLOWED_HOSTS = [
     '192.168.8.100',
     '192.168.8.192'
 ]
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://lukore.pythonanywhere.com',
+]
 
 # Application definition
 
