@@ -44,6 +44,16 @@
       {% endfor %}
     </select>
 
+    <label>Term:</label>
+    <select name="term">
+      <option value="">All</option>
+      {% for t in terms %}
+        <option value="{{ t.id }}" {% if selected_term == t.id %}selected{% endif %}>
+          {{ t.name }}
+        </option>
+      {% endfor %}
+    </select>
+
     <label>Day:</label>
     <select name="normal_day">
       <option value="">All</option>
@@ -58,7 +68,7 @@
     <input type="date" name="normal_date" value="{{ normal_selected_date }}" />
 
     <button type="submit">Apply</button>
-    <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tu=t?t.value:'';var wu=w?w.value:''; var url = '{% url 'myadmin:deputy_normal_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu); window.location.href = url; })()">Print / Download</button>
+    <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tm=document.querySelector('select[name=\'term\']');var tu=t?t.value:'';var wu=w?w.value:'';var tmu=tm?tm.value:''; var url = '{% url 'myadmin:deputy_normal_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu)+'&term='+encodeURIComponent(tmu); window.location.href = url; })()">Print / Download</button>
   </form>
 </div>
 

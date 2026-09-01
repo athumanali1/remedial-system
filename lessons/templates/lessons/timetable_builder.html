@@ -121,6 +121,34 @@
                       {% endwith %}
                     {% endwith %}
 
+                    {# Lesson 4 (hidden if empty) #}
+                    {% with key4=base|add:"_4" %}
+                      {% with selected4=current|dict_get:key4 %}
+                        <div class="lesson-select" data-index="4" {% if not selected4 %}style="display:none;"{% endif %}>
+                          <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_4" style="margin-top:4px;">
+                            <option value="" {% if not selected4 %}selected{% endif %}>-- Empty --</option>
+                            {% for p in pairs %}
+                              <option value="{{ p.subject_id }}-{{ p.teacher_id }}" {% if selected4 == p.key %}selected{% endif %}>{{ p.label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      {% endwith %}
+                    {% endwith %}
+
+                    {# Lesson 5 (hidden if empty) #}
+                    {% with key5=base|add:"_5" %}
+                      {% with selected5=current|dict_get:key5 %}
+                        <div class="lesson-select" data-index="5" {% if not selected5 %}style="display:none;"{% endif %}>
+                          <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_5" style="margin-top:4px;">
+                            <option value="" {% if not selected5 %}selected{% endif %}>-- Empty --</option>
+                            {% for p in pairs %}
+                              <option value="{{ p.subject_id }}-{{ p.teacher_id }}" {% if selected5 == p.key %}selected{% endif %}>{{ p.label }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      {% endwith %}
+                    {% endwith %}
+
                     <button type="button" class="add-lesson-btn" style="margin-top:4px; font-size:11px; padding:1px 4px;">Add lesson</button>
                   </td>
                 {% endwith %}

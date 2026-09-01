@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Academic Year - Remedial System</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .year-selection-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        .form-select {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 16px;
+        }
+        .btn-continue {
+            background: white;
+            color: #2575fc;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .btn-continue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="year-selection-card">
+        <div class="text-center mb-4">
+            <h1 class="mb-3">📅 Select Academic Year</h1>
+            <p class="lead">Please select the academic year you want to work with to continue.</p>
+        </div>
+
+        <form method="POST" action="{% url 'select_academic_year' %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                <select name="academic_year" class="form-select form-select-lg" required>
+                    <option value="">-- Select Academic Year --</option>
+                    {% for year in academic_years %}
+                    <option value="{{ year.id }}" {% if year.is_active %}selected{% endif %}>
+                        {{ year.name }} ({{ year.start_date|date:"M d, Y" }} - {{ year.end_date|date:"M d, Y" }})
+                        {% if year.is_active %} [Active]{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="next" value="{{ request.GET.next|default:'/' }}">
+            <button type="submit" class="btn btn-continue w-100">Continue →</button>
+        </form>
+
+        {% if not academic_years %}
+        <div class="alert alert-warning mt-3">
+            <strong>No academic years found.</strong> Please contact an administrator to create academic years in the system.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

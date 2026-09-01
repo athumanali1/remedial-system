@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from lessons.models import Student, Subject
+from lessons.models import Student, Subject, AcademicYear
 from django.contrib.auth.models import User
 
 
@@ -35,6 +35,7 @@ class BorrowRecord(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="borrow_records")
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="borrowed_books")
     assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.SET_NULL, null=True, blank=True, help_text="Academic year when book was borrowed")
     date_borrowed = models.DateField(default=timezone.localdate)
     expected_return_date = models.DateField(null=True, blank=True)
     date_returned = models.DateField(null=True, blank=True)

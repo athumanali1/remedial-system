@@ -1,0 +1,102 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 20px auto;">
+    <h1 style="color: #333; margin-bottom: 30px;">📅 Close Academic Year & Setup Next Year</h1>
+    
+    <div style="background: #fef3c7; padding: 20px; border-radius: 8px; border: 1px solid #fcd34d; margin-bottom: 30px;">
+        <h3 style="margin: 0 0 10px 0; color: #92400e;">Closing: {{ current_year.name }}</h3>
+        <p style="margin: 0; color: #78350f;">
+            This will close the current academic year and automatically set up the next year with:
+        </p>
+        <ul style="margin: 10px 0 0 20px; color: #78350f;">
+            <li>3 new terms with auto-generated weeks</li>
+            <li>Student promotion to next class (e.g., Grade 10N → Grade 11N)</li>
+            <li>Teacher promotion with their class</li>
+            <li>Unpaid balances carried forward as previous balances</li>
+        </ul>
+    </div>
+
+    <form method="post" style="background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #e5e7eb;">
+        {% csrf_token %}
+        
+        <h2 style="margin: 0 0 20px 0; color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">Next Academic Year Details</h2>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 6px; font-weight: 500;">Year Name:</label>
+            <input type="text" name="next_year_name" placeholder="e.g., 2026-2027" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+            <div>
+                <label style="display: block; margin-bottom: 6px; font-weight: 500;">Start Date:</label>
+                <input type="date" name="next_year_start" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 6px; font-weight: 500;">End Date:</label>
+                <input type="date" name="next_year_end" required style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+        </div>
+
+        <h2 style="margin: 30px 0 20px 0; color: #333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">Term Dates (Weeks will auto-generate)</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd;">
+                <h3 style="margin: 0 0 10px 0; color: #0369a1;">Term 1</h3>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 4px; font-size: 13px;">Start:</label>
+                    <input type="date" name="term_1_start" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-size: 13px;">End:</label>
+                    <input type="date" name="term_1_end" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+            </div>
+            
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd;">
+                <h3 style="margin: 0 0 10px 0; color: #0369a1;">Term 2</h3>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 4px; font-size: 13px;">Start:</label>
+                    <input type="date" name="term_2_start" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-size: 13px;">End:</label>
+                    <input type="date" name="term_2_end" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+            </div>
+            
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd;">
+                <h3 style="margin: 0 0 10px 0; color: #0369a1;">Term 3</h3>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 4px; font-size: 13px;">Start:</label>
+                    <input type="date" name="term_3_start" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-size: 13px;">End:</label>
+                    <input type="date" name="term_3_end" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #dcfce7; padding: 15px; border-radius: 8px; border: 1px solid #22c55e; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 10px 0; color: #166534;">What will happen:</h3>
+            <ul style="margin: 10px 0 0 20px; color: #15803d;">
+                <li>Students promoted: Grade 10N → Grade 11N, Grade 10S → Grade 11S, Form 3 → Form 4</li>
+                <li>Teachers move with their class to the next year</li>
+                <li>Unpaid balances become previous balances in the next year</li>
+                <li>Form 4 students will graduate (no promotion)</li>
+                <li>Weeks auto-generated for each term (Mon-Sat, no Sundays)</li>
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" style="padding: 14px 28px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 16px;">
+                ✅ Close Year & Setup Next Year
+            </button>
+            <a href="{% url 'myadmin:setup_guide' %}" style="padding: 14px 28px; background: #9ca3af; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 16px;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -19,19 +19,66 @@ from .models import (
     Timetable,
     LessonRecord,
     Week,
+    Term,
     ClassGroup,
     Subject,
     Student,
     StudentPayment,
+    StudentPreviousBalance,
     NormalLessonSlot,
     NormalLessonAttendance,
+    AcademicYear,
 )
 
 
 TERM_FEE = 1500
 
+
+def get_selected_academic_year(request):
+    """Helper function to get the selected academic year from session."""
+    year_id = request.session.get('selected_academic_year_id')
+    if year_id:
+        try:
+            return AcademicYear.objects.get(id=year_id)
+        except AcademicYear.DoesNotExist:
+            return None
+    return None
+
 def home(request):
-    return render(request, "lessons/home.html")
+    """Home page with academic year selection modal."""
+    # Check if user has selected an academic year
+    selected_year_id = request.session.get('selected_academic_year_id')
+    
+    # If no year selected, show modal
+    show_year_modal = not selected_year_id
+    
+    context = {
+        'show_year_modal': show_year_modal,
+    }
+    return render(request, "lessons/home.html", context)
+
+
+def select_academic_year(request):
+    """Handle academic year selection via POST or show selection page."""
+    if request.method == 'POST':
+        year_id = request.POST.get('academic_year')
+        if year_id:
+            request.session['selected_academic_year_id'] = year_id
+        
+        # Redirect to the page the user was trying to access, or home
+        next_url = request.POST.get('next') or request.GET.get('next') or '/'
+        # Remove query parameters to clear record filters (but keep teacher/class selections)
+        if '?' in next_url:
+            next_url = next_url.split('?')[0]
+        return redirect(next_url)
+    
+    # GET request - show year selection page
+    years = AcademicYear.objects.all().order_by('-start_date')
+    
+    context = {
+        'academic_years': years,
+    }
+    return render(request, "lessons/select_academic_year.html", context)
 
 
 def debug_load_timetables(request):
@@ -77,22 +124,35 @@ def remedial_stats(request):
 
     from datetime import datetime
 
+    # Get selected academic year
+    selected_year = get_selected_academic_year(request)
+    
     selected_week = request.GET.get("week")
     selected_teacher = request.GET.get("teacher")
+    selected_term = request.GET.get("term")
+
+    # Filter weeks by selected academic year
+    weeks_qs = Week.objects.all()
+    if selected_year:
+        weeks_qs = weeks_qs.filter(academic_year=selected_year)
+    
+    # Filter weeks by selected term
+    if selected_term:
+        weeks_qs = weeks_qs.filter(term_id=selected_term)
 
     # Default to most recent week if no week is selected
     if not selected_week:
         try:
-            # First try to find current week
-            current_week = Week.objects.filter(
+            # First try to find current week within selected year
+            current_week = weeks_qs.filter(
                 start_date__lte=datetime.now().date(),
                 end_date__gte=datetime.now().date()
             ).first()
             if current_week:
                 selected_week = str(current_week.id)
             else:
-                # If no current week, get the most recent week
-                recent_week = Week.objects.order_by('-start_date').first()
+                # If no current week, get the most recent week in selected year
+                recent_week = weeks_qs.order_by('-start_date').first()
                 if recent_week:
                     selected_week = str(recent_week.id)
         except:
@@ -265,14 +325,22 @@ def remedial_stats(request):
             }
         )
 
-    weeks = Week.objects.all()
+    weeks = weeks_qs  # Use filtered weeks based on academic year
     teachers = Teacher.objects.all()
+    
+    # Get terms for filter
+    terms = Term.objects.all()
+    if selected_year:
+        terms = terms.filter(academic_year=selected_year)
 
     context = {
         "weeks": weeks,
         "teachers": teachers,
+        "terms": terms,
         "selected_week": int(selected_week) if selected_week else None,
         "selected_teacher": int(selected_teacher) if selected_teacher else None,
+        "selected_term": int(selected_term) if selected_term else None,
+        "selected_academic_year": selected_year,
         "total": total,
         "attended": attended,
         "not_attended": not_attended,
@@ -298,24 +366,37 @@ def deputy_normal_stats(request):
 
     from datetime import datetime
 
+    # Get selected academic year
+    selected_year = get_selected_academic_year(request)
+    
     selected_week = request.GET.get("week")
     selected_teacher = request.GET.get("teacher")
+    selected_term = request.GET.get("term")
     normal_selected_day = request.GET.get("normal_day")
     normal_selected_date = request.GET.get("normal_date")
+
+    # Filter weeks by selected academic year
+    weeks_qs = Week.objects.all()
+    if selected_year:
+        weeks_qs = weeks_qs.filter(academic_year=selected_year)
+    
+    # Filter weeks by selected term
+    if selected_term:
+        weeks_qs = weeks_qs.filter(term_id=selected_term)
 
     # Default to most recent week if no week is selected
     if not selected_week:
         try:
-            # First try to find current week
-            current_week = Week.objects.filter(
+            # First try to find current week within selected year
+            current_week = weeks_qs.filter(
                 start_date__lte=datetime.now().date(),
                 end_date__gte=datetime.now().date()
             ).first()
             if current_week:
                 selected_week = str(current_week.id)
             else:
-                # If no current week, get the most recent week
-                recent_week = Week.objects.order_by('-start_date').first()
+                # If no current week, get the most recent week in selected year
+                recent_week = weeks_qs.order_by('-start_date').first()
                 if recent_week:
                     selected_week = str(recent_week.id)
         except:
@@ -403,14 +484,22 @@ def deputy_normal_stats(request):
             }
         )
 
-    weeks = Week.objects.all()
+    weeks = weeks_qs  # Use filtered weeks based on academic year
     teachers = Teacher.objects.all()
+    
+    # Get terms for filter
+    terms = Term.objects.all()
+    if selected_year:
+        terms = terms.filter(academic_year=selected_year)
 
     context = {
         "weeks": weeks,
         "teachers": teachers,
+        "terms": terms,
         "selected_week": int(selected_week) if selected_week else None,
         "selected_teacher": int(selected_teacher) if selected_teacher else None,
+        "selected_term": int(selected_term) if selected_term else None,
+        "selected_academic_year": selected_year,
         "normal_selected_day": normal_selected_day,
         "normal_selected_date": normal_selected_date,
         "total": total,
@@ -671,21 +760,29 @@ def teacher_normal_stats(request):
         # Otherwise send non-teacher users back to the public home page.
         return redirect("website:home")
 
+    # Get selected academic year
+    selected_year = get_selected_academic_year(request)
+    
     raw_week = request.GET.get("week")
+    
+    # Filter weeks by selected academic year
+    weeks_qs = Week.objects.all()
+    if selected_year:
+        weeks_qs = weeks_qs.filter(academic_year=selected_year)
     
     # Default to most recent week if no week is selected
     if not raw_week:
         try:
-            # First try to find current week
-            current_week = Week.objects.filter(
+            # First try to find current week within selected year
+            current_week = weeks_qs.filter(
                 start_date__lte=datetime.now().date(),
                 end_date__gte=datetime.now().date()
             ).first()
             if current_week:
                 raw_week = str(current_week.id)
             else:
-                # If no current week, get the most recent week
-                recent_week = Week.objects.order_by('-start_date').first()
+                # If no current week, get the most recent week in selected year
+                recent_week = weeks_qs.order_by('-start_date').first()
                 if recent_week:
                     raw_week = str(recent_week.id)
         except:
@@ -802,12 +899,13 @@ def teacher_normal_stats(request):
     not_attended = sum(1 for r in rows if str(r["status"]).lower() == "not attended".lower())
     pending = sum(1 for r in rows if str(r["status"]).lower() == "pending".lower())
 
-    weeks = Week.objects.all()
+    weeks = weeks_qs  # Use filtered weeks based on academic year
 
     context = {
         "teacher": teacher,
         "weeks": weeks,
         "selected_week": week_id,
+        "selected_academic_year": selected_year,
         "normal_selected_day": normal_selected_day,
         "normal_selected_date": normal_selected_date,
         "rows": rows,
@@ -871,6 +969,9 @@ def teacher_dashboard(request):
         # Otherwise send non-teacher users back to the public home page.
         return redirect('website:home')
 
+    # Get selected academic year
+    selected_year = get_selected_academic_year(request)
+    
     context = {"teacher": teacher}
     
 
@@ -878,9 +979,18 @@ def teacher_dashboard(request):
     selected_week = request.GET.get("week")
     selected_class = request.GET.get("class_group")
     selected_subject = request.GET.get("subject")
+    selected_term = request.GET.get("term")
 
     # Base queryset for lessons of this teacher
     lessons = LessonRecord.objects.filter(timetable__teacher=teacher)
+
+    # Filter by selected academic year
+    if selected_year:
+        lessons = lessons.filter(week__academic_year=selected_year)
+    
+    # Filter by selected term
+    if selected_term:
+        lessons = lessons.filter(week__term_id=selected_term)
 
     if selected_week:
         lessons = lessons.filter(week_id=selected_week)
@@ -906,10 +1016,26 @@ def teacher_dashboard(request):
         Sum("amount")
     )["amount__sum"] or 0
 
-    # Lists for filters
-    weeks = Week.objects.all()
-    classes = ClassGroup.objects.all()
-    subjects = Subject.objects.all()
+    # Lists for filters - only filter weeks by academic year
+    weeks_qs = Week.objects.all()
+    if selected_year:
+        weeks_qs = weeks_qs.filter(academic_year=selected_year)
+    
+    # Filter weeks by selected term
+    if selected_term:
+        weeks_qs = weeks_qs.filter(term_id=selected_term)
+    
+    # Get terms for filter
+    terms = Term.objects.all()
+    if selected_year:
+        terms = terms.filter(academic_year=selected_year)
+    
+    # Don't filter classes or teachers by academic year - they persist across years
+    weeks = weeks_qs
+    # Filter classes to only show classes assigned to this teacher
+    classes = teacher.class_groups.all()
+    # Filter subjects to only show subjects assigned to this teacher
+    subjects = teacher.subjects.all()
     timetables = Timetable.objects.filter(teacher=teacher)
     other_teachers = Teacher.objects.exclude(id=teacher.id)
 
@@ -917,11 +1043,14 @@ def teacher_dashboard(request):
         "teacher": teacher,
         "lessons": lessons,
         "weeks": weeks,
+        "terms": terms,
         "classes": classes,
         "subjects": subjects,
         "timetables": timetables,
         "other_teachers": other_teachers,
+        "selected_academic_year": selected_year,
         "selected_week": selected_week,
+        "selected_term": selected_term,
         "selected_class": selected_class,
         "selected_subject": selected_subject,
         "total_lessons": total_lessons,
@@ -1166,7 +1295,7 @@ def timetable_builder(request):
                         st_key = st.strftime("%H%M")
                         et_key = et.strftime("%H%M")
 
-                        for idx in (1, 2, 3):
+                        for idx in (1, 2, 3, 4, 5):
                             field_name = f"cell_{cg.id}_{day}_{st_key}_{et_key}_{idx}"
                             val = request.POST.get(field_name, "").strip()
                             if not val:
@@ -1255,7 +1384,7 @@ def timetable_builder(request):
                             st_key = st.strftime("%H%M")
                             et_key = et.strftime("%H%M")
 
-                            for idx in (1, 2, 3):
+                            for idx in (1, 2, 3, 4, 5):
                                 field_name = f"cell_{cg.id}_{day}_{st_key}_{et_key}_{idx}"
                                 val = request.POST.get(field_name, "").strip()
                                 if not val:
@@ -1906,7 +2035,7 @@ def remedial_timetable_builder(request):
                         st_key = st.strftime("%H%M")
                         et_key = et.strftime("%H%M")
 
-                        for idx in (1, 2, 3):
+                        for idx in (1, 2, 3, 4, 5):
                             field_name = f"cell_{cg.id}_{day}_{st_key}_{et_key}_{idx}"
                             val = request.POST.get(field_name, "").strip()
                             if not val:
@@ -1987,7 +2116,7 @@ def remedial_timetable_builder(request):
                             st_key = st.strftime("%H%M")
                             et_key = et.strftime("%H%M")
 
-                            for idx in (1, 2, 3):
+                            for idx in (1, 2, 3, 4, 5):
                                 field_name = f"cell_{cg.id}_{day}_{st_key}_{et_key}_{idx}"
                                 val = request.POST.get(field_name, "").strip()
                                 if not val:
@@ -2203,38 +2332,218 @@ def load_timetables(request):
 def student_payments(request):
     teacher = get_object_or_404(Teacher, user=request.user)
 
+    # Get selected academic year
+    selected_year = get_selected_academic_year(request)
+    
+    # If no academic year selected, default to the active one
+    if not selected_year:
+        selected_year = AcademicYear.objects.filter(is_active=True).first()
+    
+    selected_term = request.GET.get("term")
+
     # If teacher has no assigned class, deny access
     if not hasattr(teacher, "main_class") or teacher.main_class is None:
         return redirect('teacher_dashboard')
 
+    # Don't filter students by academic year - students persist across years
     students = Student.objects.filter(class_group=teacher.main_class)
+    
+    # Get all terms for the selected academic year
+    terms = Term.objects.filter(academic_year=selected_year) if selected_year else Term.objects.all()
+    
+    # Determine active term based on current date
+    from datetime import datetime
+    current_date = datetime.now().date()
+    active_term = None
+    for term in terms:
+        if term.start_date <= current_date <= term.end_date:
+            active_term = term
+            break
+    
+    # If no active term found, default to first term
+    if not active_term and terms.exists():
+        active_term = terms.first()
+    
+    # Filter students by selected term if specified
+    if selected_term:
+        students = students.filter(term_id=selected_term)
 
-    # Compute statistics
+    # Compute statistics - filter payments by academic year
     total_students = students.count()
     total_fee_per_student = Decimal('1500.00')
-    total_paid = sum(s.amount_paid for s in students)
-    total_unpaid = total_students * total_fee_per_student - total_paid
-    fully_paid = sum(1 for s in students if s.amount_paid >= total_fee_per_student)
-    partial_paid = sum(1 for s in students if 0 < s.amount_paid < total_fee_per_student)
+    total_expected_fees = total_fee_per_student * len(terms)
+    
+    # Filter payments by academic year
+    payments_qs = StudentPayment.objects.filter(student__in=students)
+    if selected_year:
+        payments_qs = payments_qs.filter(academic_year=selected_year)
+    
+    # Filter payments by term if selected
+    if selected_term:
+        try:
+            term_obj = Term.objects.get(id=selected_term)
+            payments_qs = payments_qs.filter(term=term_obj.name)
+        except Term.DoesNotExist:
+            pass
+    
+    # Exclude "Previous Balance" payments from regular payment calculations
+    regular_payments = payments_qs.exclude(term="Previous Balance")
+    total_paid = regular_payments.aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+    
+    # Calculate total previous balances
+    total_previous_balances = StudentPreviousBalance.objects.filter(
+        student__in=students,
+        academic_year=selected_year
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+    
+    # Total unpaid = previous balances + expected fees - total paid (excluding previous balance payments)
+    total_unpaid = total_previous_balances + (total_expected_fees * total_students) - total_paid
+    
+    # Count students based on their individual payment status
+    fully_paid = 0
+    partial_paid = 0
+    for student in students:
+        # Get individual student's total paid (excluding "Previous Balance" payments)
+        student_payments = StudentPayment.objects.filter(
+            student=student,
+            academic_year=selected_year
+        ).exclude(term="Previous Balance")
+        student_total_paid = student_payments.aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        
+        # Get individual student's previous balance (debt)
+        student_prev_balance = StudentPreviousBalance.objects.filter(
+            student=student,
+            academic_year=selected_year
+        ).first()
+        student_prev_amount = student_prev_balance.amount if student_prev_balance else Decimal('0')
+        
+        # Calculate what this student owes
+        student_total_owed = total_expected_fees + student_prev_amount
+        
+        # Check payment status
+        if student_total_paid >= student_total_owed:
+            fully_paid += 1
+        elif student_total_paid > 0:
+            partial_paid += 1
+
+    # Build term-wise payment breakdown for each student
+    student_term_data = []
+    for student in students:
+        student_terms = []
+        total_paid = Decimal('0')
+        
+        # Get previous balance for this student in current academic year
+        previous_balance = StudentPreviousBalance.objects.filter(
+            student=student,
+            academic_year=selected_year
+        ).first()
+        previous_balance_amount = previous_balance.amount if previous_balance else Decimal('0')
+        
+        for term in terms:
+            term_payments = StudentPayment.objects.filter(
+                student=student,
+                academic_year=selected_year,
+                term=term.name
+            )
+            total_paid_for_term = term_payments.aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+            term_balance = total_fee_per_student - total_paid_for_term
+            total_paid += total_paid_for_term
+            student_terms.append({
+                'term_id': term.id,
+                'term_name': term.name,
+                'paid': total_paid_for_term,
+                'balance': term_balance,
+                'is_active': term == active_term,
+                'is_future': term.start_date > current_date if term.start_date else False
+            })
+        # Total balance is previous balance + (fee per term * number of terms) - total_paid
+        # Ensure balance never goes below 0 (overpayments should result in 0 balance)
+        total_expected_fees = total_fee_per_student * len(terms)
+        total_balance = max(Decimal('0'), previous_balance_amount + total_expected_fees - total_paid)
+        student_term_data.append({
+            'student': student,
+            'term_payments': student_terms,
+            'total_balance': total_balance,
+            'total_paid': total_paid,
+            'previous_balance': previous_balance_amount
+        })
 
     # Record payments
     if request.method == "POST":
         for student in students:
-            amount_str = request.POST.get(f"amount_{student.id}")
-            if amount_str:
+            # Handle previous balance payments
+            previous_payment_str = request.POST.get(f"previous_payment_{student.id}")
+            if previous_payment_str:
                 try:
-                    amount = Decimal(amount_str)
-                    if amount > 0:
-                        StudentPayment.objects.create(
+                    previous_payment_amount = Decimal(previous_payment_str)
+                    if previous_payment_amount > 0:
+                        # Get or create previous balance record
+                        previous_balance = StudentPreviousBalance.objects.filter(
                             student=student,
-                            amount=amount,
-                            recorded_by=teacher,
-                            term="Term 1"
-                        )
-                        student.amount_paid = amount
-                        student.save()
+                            academic_year=selected_year
+                        ).first()
+                        
+                        if previous_balance:
+                            # Reduce the previous balance by the payment amount
+                            previous_balance.amount = max(Decimal('0'), previous_balance.amount - previous_payment_amount)
+                            previous_balance.save()
+                            
+                            # Record the payment as a StudentPayment with term "Previous Balance"
+                            StudentPayment.objects.create(
+                                student=student,
+                                amount=previous_payment_amount,
+                                recorded_by=teacher,
+                                term="Previous Balance",
+                                academic_year=selected_year
+                            )
                 except (InvalidOperation, ValueError):
                     continue
+            
+            # Handle term payments (both editing and adding)
+            for term in terms:
+                # Check if editing existing paid amount
+                edit_amount_str = request.POST.get(f"edit_amount_{student.id}_{term.id}")
+                if edit_amount_str:
+                    try:
+                        new_total_amount = Decimal(edit_amount_str)
+                        if new_total_amount >= 0:
+                            # Delete existing payment records for this term
+                            existing_payments = StudentPayment.objects.filter(
+                                student=student,
+                                academic_year=selected_year,
+                                term=term.name
+                            )
+                            existing_payments.delete()
+                            
+                            # Create new payment record with the edited total amount
+                            if new_total_amount > 0:
+                                StudentPayment.objects.create(
+                                    student=student,
+                                    amount=new_total_amount,
+                                    recorded_by=teacher,
+                                    term=term.name,
+                                    academic_year=selected_year
+                                )
+                    except (InvalidOperation, ValueError):
+                        continue
+                
+                # Handle additional payments (add to existing)
+                amount_str = request.POST.get(f"amount_{student.id}_{term.id}")
+                if amount_str:
+                    try:
+                        amount = Decimal(amount_str)
+                        if amount > 0:
+                            StudentPayment.objects.create(
+                                student=student,
+                                amount=amount,
+                                recorded_by=teacher,
+                                term=term.name,
+                                academic_year=selected_year
+                            )
+                            student.amount_paid = amount
+                            student.save()
+                    except (InvalidOperation, ValueError):
+                        continue
         return redirect(request.path)
 
     context = {
@@ -2246,22 +2555,76 @@ def student_payments(request):
         "fully_paid": fully_paid,
         "partial_paid": partial_paid,
         "total_fee_per_student": total_fee_per_student,
+        "selected_academic_year": selected_year,
+        "selected_term": selected_term,
+        "terms": terms,
+        "active_term": active_term,
+        "student_term_data": student_term_data,
+        "current_date": current_date,
     }
     return render(request, "lessons/student_payments.html", context)
 
-    context = {
-        "class_groups": class_groups,
-        "students": students,
-        "selected_class_id": selected_class_id,
-        # Statistics
-        "total_students": total_students,
-        "total_paid": total_paid,
-        "total_unpaid": total_unpaid,
-        "fully_paid": fully_paid,
-        "partial_paid": partial_paid,
-        "total_fee_per_student": total_fee_per_student,
-    }
-    return render(request, "lessons/student_payments.html", context)
+
+@login_required
+@csrf_exempt
+def add_previous_balance_ajax(request):
+    """AJAX endpoint for class teachers to add previous balance for a student."""
+    teacher = get_object_or_404(Teacher, user=request.user)
+    
+    if not hasattr(teacher, "main_class") or teacher.main_class is None:
+        return JsonResponse({'error': 'You are not a class teacher'}, status=403)
+    
+    if request.method != "POST":
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    student_id = request.POST.get('student_id')
+    amount = request.POST.get('amount')
+    notes = request.POST.get('notes', '')
+    
+    if not student_id or not amount:
+        return JsonResponse({'error': 'Missing required fields'}, status=400)
+    
+    try:
+        student = Student.objects.get(id=student_id, class_group=teacher.main_class)
+        selected_year = get_selected_academic_year(request)
+        
+        # If no academic year selected, default to the active one
+        if not selected_year:
+            selected_year = AcademicYear.objects.filter(is_active=True).first()
+        
+        if not selected_year:
+            return JsonResponse({'error': 'No academic year available. Please select an academic year first.'}, status=400)
+        
+        # Check if previous balance already exists for this student in current year
+        existing_balance = StudentPreviousBalance.objects.filter(
+            student=student,
+            academic_year=selected_year
+        ).first()
+        
+        if existing_balance:
+            # Update existing balance
+            existing_balance.amount = Decimal(amount)
+            existing_balance.notes = notes
+            existing_balance.save()
+        else:
+            # Create new previous balance
+            StudentPreviousBalance.objects.create(
+                student=student,
+                academic_year=selected_year,
+                amount=Decimal(amount),
+                notes=notes,
+                is_carried_forward=False
+            )
+        
+        return JsonResponse({'success': True})
+    except Student.DoesNotExist:
+        return JsonResponse({'error': 'Student not found in your class'}, status=404)
+    except (ValueError, InvalidOperation):
+        return JsonResponse({'error': 'Invalid amount'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 @login_required
 @csrf_exempt
 def add_student_ajax(request):

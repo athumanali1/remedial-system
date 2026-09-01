@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Book, BorrowRecord
-from lessons.models import Student, Subject
+from lessons.models import Student, Subject, AcademicYear
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.urls import reverse
@@ -82,6 +82,17 @@ def delete_book(request, pk):
 def manage_loans(request):
     """Central page to assign books to students and mark returns."""
 
+    # Get selected academic year
+    selected_year_id = request.session.get('selected_academic_year_id')
+    selected_year = None
+    if selected_year_id:
+        try:
+            selected_year = AcademicYear.objects.get(id=selected_year_id)
+        except AcademicYear.DoesNotExist:
+            selected_year = AcademicYear.objects.filter(is_active=True).first()
+    else:
+        selected_year = AcademicYear.objects.filter(is_active=True).first()
+
     # Handle new loan creation
     if request.method == "POST" and request.POST.get("action") == "create_loan":
         loan_form = LibraryLoanForm(request.POST)
@@ -89,6 +100,7 @@ def manage_loans(request):
             loan = loan_form.save(commit=False)
             loan.assigned_by = request.user
             loan.status = "borrowed"
+            loan.academic_year = selected_year
             loan.save()
             return redirect("library:manage_loans")
     else:
@@ -141,8 +153,11 @@ def manage_loans(request):
             return redirect("library:student_loans", student_id=target_student.id)
 
     # Active loans list (include borrowed and lost; hide only returned)
+    # Filter by selected academic year if available
     active_loans = BorrowRecord.objects.select_related("book", "student", "student__class_group")
     active_loans = active_loans.filter(status__in=["borrowed", "lost"])
+    if selected_year:
+        active_loans = active_loans.filter(academic_year=selected_year)
     active_loans = active_loans.order_by("-date_borrowed")
 
     # Student list for filter dropdown
@@ -152,6 +167,7 @@ def manage_loans(request):
         "loan_form": loan_form,
         "active_loans": active_loans,
         "students": students,
+        "selected_academic_year": selected_year,
     }
     return render(request, "library/manage_loans.html", context)
 

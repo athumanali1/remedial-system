@@ -5,3 +5,13 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'lessons/css/admin.css' %}">
 {% endblock %}
+
+{% block nav-global %}
+  {% if selected_academic_year %}
+  <div style="padding: 8px 15px; background: #e0e7ff; color: #3730a3; font-weight: bold; margin: 10px 0; border-radius: 4px;">
+    📅 Academic Year: {{ selected_academic_year.name }}
+    <a href="{% url 'select_academic_year' %}?next={{ request.path }}" style="margin-left: 10px; color: #6366f1; font-size: 12px;">Change Year</a>
+  </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

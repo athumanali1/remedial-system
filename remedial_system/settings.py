@@ -65,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'lessons.middleware.AcademicYearMiddleware',
 ]
 
 ROOT_URLCONF = 'remedial_system.urls'
@@ -79,6 +80,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'remedial_system.context_processors.academic_year_context',
             ],
         },
     },

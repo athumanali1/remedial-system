@@ -3,6 +3,68 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
+# ----------------------------
+# Academic Year model
+# ----------------------------
+class AcademicYear(models.Model):
+    """Academic year (e.g., 2025-2026) for organizing all school data."""
+    
+    name = models.CharField(max_length=20, unique=True, help_text="e.g., 2025-2026")
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=False, help_text="The currently active academic year")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-start_date']
+        verbose_name = "Academic Year"
+        verbose_name_plural = "Academic Years"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        """Ensure only one academic year is active at a time."""
+        if self.is_active:
+            # Deactivate all other academic years
+            AcademicYear.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
+        super().save(*args, **kwargs)
+
+
+# ----------------------------
+# Term model
+# ----------------------------
+class Term(models.Model):
+    """Academic term (e.g., Term 1, Term 2, Term 3) within an academic year."""
+    
+    name = models.CharField(max_length=50, help_text="e.g., Term 1, Term 2, Term 3")
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="terms",
+        help_text="Academic year for this term"
+    )
+    start_date = models.DateField(help_text="Start date of this term")
+    end_date = models.DateField(help_text="End date of this term")
+    is_active = models.BooleanField(default=False, help_text="The currently active term")
+    is_skipped = models.BooleanField(default=False, help_text="Mark if this term was skipped during setup")
+    is_wrapped = models.BooleanField(default=False, help_text="Mark if this term has been wrapped/completed")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['start_date']
+        verbose_name = "Term"
+        verbose_name_plural = "Terms"
+        unique_together = [['name', 'academic_year']]
+
+    def __str__(self):
+        return f"{self.name} ({self.academic_year.name})"
+
+    def save(self, *args, **kwargs):
+        """Ensure only one term is active at a time within the same academic year."""
+        if self.is_active:
+            Term.objects.filter(is_active=True, academic_year=self.academic_year).exclude(pk=self.pk).update(is_active=False)
+        super().save(*args, **kwargs)
 
 
 # ----------------------------
@@ -20,6 +82,14 @@ class Subject(models.Model):
 # ----------------------------
 class ClassGroup(models.Model):
     name = models.CharField(max_length=50)
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="class_groups",
+        null=True,
+        blank=True,
+        help_text="Academic year for this class group"
+    )
     class_teacher = models.OneToOneField(
         "Teacher",
         on_delete=models.SET_NULL,
@@ -28,7 +98,8 @@ class ClassGroup(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        year_str = f" ({self.academic_year.name})" if self.academic_year else ""
+        return f"{self.name}{year_str}"
 
 # ----------------------------
 # Teacher model
@@ -63,6 +134,22 @@ class Timetable(models.Model):
     day = models.CharField(max_length=3, choices=DAYS)
     start_time = models.TimeField()
     end_time = models.TimeField()
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="timetables",
+        null=True,
+        blank=True,
+        help_text="Academic year for this timetable"
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        related_name="timetables",
+        null=True,
+        blank=True,
+        help_text="Term for this timetable"
+    )
 
     def __str__(self):
         if self.subject_fk:
@@ -114,13 +201,30 @@ class Timetable(models.Model):
 # Week model
 # ----------------------------
 class Week(models.Model):
-    number = models.PositiveIntegerField()  # Week 1, Week 2...
-    start_date = models.DateField()
-    end_date = models.DateField()
+    number = models.PositiveIntegerField(help_text="Week number (e.g., 1, 2, 3...)")  # Week 1, Week 2...
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="weeks",
+        null=True,
+        blank=True,
+        help_text="Academic year for this week"
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        related_name="weeks",
+        null=True,
+        blank=True,
+        help_text="Term for this week"
+    )
+    start_date = models.DateField(help_text="Start date of this week")
+    end_date = models.DateField(help_text="End date of this week")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Week {self.number} ({self.start_date} - {self.end_date})"
+        year_str = f" {self.academic_year.name}" if self.academic_year else ""
+        return f"Week {self.number}{year_str} ({self.start_date} - {self.end_date})"
 
 
 # ----------------------------
@@ -146,6 +250,22 @@ class NormalLessonSlot(models.Model):
     )
     subject_fk = models.ForeignKey(Subject, on_delete=models.CASCADE)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="normal_slots",
+        null=True,
+        blank=True,
+        help_text="Academic year for this lesson slot"
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        related_name="normal_slots",
+        null=True,
+        blank=True,
+        help_text="Term for this lesson slot"
+    )
 
     def __str__(self):
         return f"{self.class_group} {self.get_day_display()} {self.start_time.strftime('%H:%M')} - {self.end_time.strftime('%H:%M')}"
@@ -288,6 +408,7 @@ class Student(models.Model):
     last_name = models.CharField(max_length=50)
     admission_number = models.CharField(max_length=20, unique=True)
     class_group = models.ForeignKey(ClassGroup, on_delete=models.CASCADE, related_name='students')
+    term = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True, related_name='students', help_text="Current term for this student")
     
     # Payment info
     term_fee = models.DecimalField(max_digits=8, decimal_places=2, default=1500)  # Default per term
@@ -301,15 +422,37 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.admission_number})"
 
+
+class StudentPreviousBalance(models.Model):
+    """Track previous year unpaid balances carried forward to current year."""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='previous_balances')
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='previous_balances')
+    amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    is_carried_forward = models.BooleanField(default=False, help_text="Whether this balance was automatically carried forward from previous year")
+    notes = models.TextField(blank=True, help_text="Notes about this previous balance")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.student} - {self.academic_year}: {self.amount}"
+
 class StudentPayment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=8, decimal_places=2)
     date_paid = models.DateField(auto_now_add=True)  # Defaults to today
     term = models.CharField(max_length=20)  # Optional: "Term 1", "Term 2", etc.
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="student_payments",
+        help_text="Academic year when payment was made"
+    )
     recorded_by = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True)  # Who collected the payment
 
     def __str__(self):
-        return f"{self.student} - Paid {self.amount} on {self.date_paid}"
+        year_str = f" [{self.academic_year.name}]" if self.academic_year else ""
+        return f"{self.student} - Paid {self.amount} on {self.date_paid}{year_str}"
     
     class Meta:
         ordering = ['-date_paid']  # Latest payments first

@@ -25,6 +25,13 @@
             ← Back
         </button>
 
+        {% if selected_academic_year %}
+        <span style="margin-left:12px; padding:4px 10px; font-size:12px; border-radius:4px; background:#e0e7ff; color:#3730a3; font-weight:bold;">
+            📅 {{ selected_academic_year.name }}
+        </span>
+        <a href="{% url 'select_academic_year' %}?next={{ request.path }}" style="margin-left:8px; font-size:12px; color:#6366f1;">Change Year</a>
+        {% endif %}
+
         {% if request.user.is_authenticated %}
             {% with current_view=request.resolver_match.url_name %}
 

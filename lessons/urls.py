@@ -4,6 +4,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Academic year selection
+    path("select-year/", views.select_academic_year, name="select_academic_year"),
+    
     # Teacher views
     path("lesson/add/", views.add_lesson_teacher, name="add_lesson"),
     path("teacher/dashboard/", views.teacher_dashboard, name="teacher_dashboard"),
@@ -30,6 +33,7 @@ urlpatterns = [
     path("filter_timetables/", views.get_timetables, name="filter_timetables"),
      path('student-payments/', views.student_payments, name='student_payments'),
     path('add-student-ajax/', views.add_student_ajax, name='add_student_ajax'),
+    path('add-previous-balance-ajax/', views.add_previous_balance_ajax, name='add_previous_balance_ajax'),
     path('edit-student-ajax/<int:student_id>/', views.edit_student_ajax, name='edit_student_ajax'),
     path('delete-student-ajax/<int:student_id>/', views.delete_student_ajax, name='delete_student_ajax'),
     path('admin-payments/', views.admin_payments, name='admin_payments'),

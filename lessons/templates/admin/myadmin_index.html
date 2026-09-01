@@ -17,6 +17,16 @@
   <div>Welcome to the Admin Portal</div>
 </div>
 
+{# Setup Guide: Show if setup is not complete #}
+{% if not setup_complete %}
+<div class="quick-grid">
+  <div class="qcard" style="background: #fef3c7; border-color: #fcd34d;">
+    <div><strong>🚀 Setup Guide</strong><div>Complete first-time setup</div></div>
+    <a href="{% url 'myadmin:setup_guide' %}" style="color: #92400e;">Open Setup Guide</a>
+  </div>
+</div>
+{% endif %}
+
 {# Deputy dashboard section: visible to users in the 'Deputy' group #}
 {% if request.user|has_group:'Deputy' %}
 <div class="quick-grid">

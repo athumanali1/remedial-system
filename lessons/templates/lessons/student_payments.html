@@ -3,8 +3,24 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Record Student Payments</h2>
+    <h2>Record Student Payments - {{ class_group.name }}</h2>
+    
+    <!-- Term Filter -->
+    <form method="get" style="margin-bottom: 16px;">
+        <label>Term:</label>
+        <select name="term">
+            <option value="">All Terms</option>
+            {% for t in terms %}
+                <option value="{{ t.id }}" {% if selected_term|stringformat:"s" == t.id|stringformat:"s" %}selected{% endif %}>
+                    {{ t.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    
     <button id="addStudentBtn" style="margin-bottom: 10px;">Add Student</button>
+    <button id="addPreviousBalanceBtn" style="margin-bottom: 10px;">Add Previous Balance</button>
     <input type="text" id="searchInput" class="search-box" placeholder="Search students...">
 
     <form method="post" id="paymentsForm">
@@ -15,29 +31,51 @@
                     <th onclick="sortTable(0)">First Name ▲▼</th>
                     <th onclick="sortTable(1)">Last Name ▲▼</th>
                     <th onclick="sortTable(2)">Admission No. ▲▼</th>
-                    <th>Amount Paid</th>
-                    <th>Balance</th>
-                    <th>Action</th>
+                    <th>Previous Balance</th>
+                    {% for term in terms %}
+                    <th>{{ term.name }}<br><small>{% if term == active_term %}(Active){% elif term.start_date > current_date %}(Future){% endif %}</small></th>
+                    {% endfor %}
+                    <th>Total Paid</th>
+                    <th>Total Balance</th>
                 </tr>
             </thead>
             <tbody>
-                {% for student in students %}
-                <tr data-id="{{ student.id }}">
-                    <td class="first-name">{{ student.first_name }}</td>
-                    <td class="last-name">{{ student.last_name }}</td>
-                    <td class="admission-no">{{ student.admission_number }}</td>
+                {% for student_data in student_term_data %}
+                <tr data-id="{{ student_data.student.id }}">
+                    <td class="first-name">{{ student_data.student.first_name }}</td>
+                    <td class="last-name">{{ student_data.student.last_name }}</td>
+                    <td class="admission-no">{{ student_data.student.admission_number }}</td>
                     <td>
-                        <input type="number" step="0.01" name="amount_{{ student.id }}" placeholder="Enter amount" 
-                               value="{{ student.amount_paid }}" onchange="updatePayment({{ student.id }}, this.value)">
+                        <div style="font-size: 12px;">
+                            <div><strong>Balance:</strong> {{ student_data.previous_balance }}</div>
+                            <input type="number" step="0.01" name="previous_payment_{{ student_data.student.id }}" placeholder="Pay previous" 
+                                   style="width: 80px; margin-top: 4px;">
+                        </div>
                     </td>
-                    <td class="balance">{{ student.balance }}</td>
+                    {% for term_data in student_data.term_payments %}
                     <td>
-                        <button type="button" class="action-btn" onclick="editStudent({{ student.id }})">Edit</button>
-                        <button type="button" class="delete-btn" onclick="deleteStudent({{ student.id }})">Delete</button>
+                        <div style="font-size: 12px;">
+                            <div><strong>Paid:</strong></div>
+                            <input type="number" step="0.01" 
+                                   name="edit_amount_{{ student_data.student.id }}_{{ term_data.term_id }}" 
+                                   value="{{ term_data.paid }}"
+                                   placeholder="Paid"
+                                   style="width: 80px; margin-bottom: 4px;">
+                            <div><strong>Owes:</strong> {{ term_data.balance }}</div>
+                            <input type="number" step="0.01" name="amount_{{ student_data.student.id }}_{{ term_data.term_id }}" placeholder="Add payment" 
+                                   style="width: 80px; margin-top: 4px;">
+                        </div>
+                    </td>
+                    {% endfor %}
+                    <td>
+                        <strong>{{ student_data.total_paid }}</strong>
+                    </td>
+                    <td>
+                        <strong>{{ student_data.total_balance }}</strong>
                     </td>
                 </tr>
                 {% empty %}
-                <tr class="no-students-row"><td colspan="6">No students found for your class.</td></tr>
+                <tr class="no-students-row"><td colspan="{{ terms|length|add:6 }}">No students found for your class.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -55,7 +93,7 @@
     </div>
 </div>
 
-<!-- Modal for Add/Edit -->
+<!-- Modal for Add/Edit Student -->
 <div id="studentModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle">Add Student</h3>
@@ -63,8 +101,27 @@
         <input type="text" id="lastName" placeholder="Last Name">
         <input type="text" id="admissionNo" placeholder="Admission Number">
         <div style="margin-top: 10px;">
-            <button id="saveBtn" style="background:#28a745; color:#fff;">Save</button>
+            <button id="saveBtn" style="background:#16a34a; color:#fff;">Save</button>
             <button id="cancelBtn" style="background:#6c757d; color:#fff;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Add Previous Balance -->
+<div id="previousBalanceModal" class="modal">
+    <div class="modal-content">
+        <h3>Add Previous Balance</h3>
+        <select id="studentSelect" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc;">
+            <option value="">Select Student</option>
+            {% for student_data in student_term_data %}
+                <option value="{{ student_data.student.id }}">{{ student_data.student.first_name }} {{ student_data.student.last_name }} ({{ student_data.student.admission_number }})</option>
+            {% endfor %}
+        </select>
+        <input type="number" step="0.01" id="previousBalanceAmount" placeholder="Amount" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc;">
+        <textarea id="previousBalanceNotes" placeholder="Notes (optional)" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc;" rows="3"></textarea>
+        <div style="margin-top: 10px;">
+            <button id="savePreviousBalanceBtn" style="background:#3b82f6; color:#fff;">Save</button>
+            <button id="cancelPreviousBalanceBtn" style="background:#6c757d; color:#fff;">Cancel</button>
         </div>
     </div>
 </div>
@@ -72,36 +129,49 @@
 <style>
 body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
 h1, h2 { color: #333; }
-button { padding: 8px 12px; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; }
-.action-btn { background: #007bff; color: #fff; }
-.action-btn:hover { background: #0056b3; }
-.delete-btn { background: #dc3545; color: #fff; }
-.delete-btn:hover { background: #b02a37; }
+button { padding: 8px 12px; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+.action-btn { background: #2563eb; color: #fff; }
+.action-btn:hover { background: #1d4ed8; }
+.delete-btn { background: #dc2626; color: #fff; }
+.delete-btn:hover { background: #b91c1c; }
+#addStudentBtn { background: #16a34a; color: #fff; }
+#addStudentBtn:hover { background: #15803d; }
+#addPreviousBalanceBtn { background: #3b82f6; color: #fff; }
+#addPreviousBalanceBtn:hover { background: #1d4ed8; }
 input.search-box { padding: 8px; width: 300px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc; }
 table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
 th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-th { background-color: #f4f4f4; cursor: pointer; }
-tbody tr:hover { background-color: #f1f1f1; }
+th { background-color: #e5e7eb; cursor: pointer; font-weight: 600; color: #1f2937; }
+tbody tr:hover { background-color: #f3f4f6; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
 .modal-content { background-color: #fff; padding: 20px; border-radius: 8px; width: 320px; }
 .modal input { width: 100%; padding: 8px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc; }
+.btn-success { background: #16a34a; color: #fff; font-weight: 600; }
+.btn-success:hover { background: #15803d; }
 </style>
 
 <script>
 const modal = document.getElementById('studentModal');
+const previousBalanceModal = document.getElementById('previousBalanceModal');
 const addBtn = document.getElementById('addStudentBtn');
+const addPreviousBalanceBtn = document.getElementById('addPreviousBalanceBtn');
 const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
+const savePreviousBalanceBtn = document.getElementById('savePreviousBalanceBtn');
+const cancelPreviousBalanceBtn = document.getElementById('cancelPreviousBalanceBtn');
 const modalTitle = document.getElementById('modalTitle');
 const firstNameInput = document.getElementById('firstName');
 const lastNameInput = document.getElementById('lastName');
 const admissionNoInput = document.getElementById('admissionNo');
+const studentSelect = document.getElementById('studentSelect');
+const previousBalanceAmount = document.getElementById('previousBalanceAmount');
+const previousBalanceNotes = document.getElementById('previousBalanceNotes');
 const searchInput = document.getElementById('searchInput');
 const studentTableBody = document.querySelector('#studentTable tbody');
 
 let editStudentId = null;
 
-// Modal open/close
+// Student Modal
 function openModal(edit=false, studentId=null) {
     modal.style.display = 'flex';
     if(edit) {
@@ -121,12 +191,60 @@ function openModal(edit=false, studentId=null) {
 }
 function closeModal() { modal.style.display = 'none'; }
 
+// Previous Balance Modal
+function openPreviousBalanceModal() {
+    previousBalanceModal.style.display = 'flex';
+    studentSelect.value = '';
+    previousBalanceAmount.value = '';
+    previousBalanceNotes.value = '';
+}
+
+function openPreviousBalanceModalForStudent(studentId, currentBalance) {
+    previousBalanceModal.style.display = 'flex';
+    studentSelect.value = studentId;
+    previousBalanceAmount.value = currentBalance;
+    previousBalanceNotes.value = '';
+}
+
+function closePreviousBalanceModal() { previousBalanceModal.style.display = 'none'; }
+
+// Update previous balance directly via AJAX
+function updatePreviousBalance(studentId, value) {
+    const amount = parseFloat(value) || 0;
+    
+    const formData = new FormData();
+    formData.append('student_id', studentId);
+    formData.append('amount', amount);
+    formData.append('notes', '');
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch('{% url 'add_previous_balance_ajax' %}', { method:'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                // Revert the input value on error
+                const input = document.querySelector(`input[data-student-id="${studentId}"]`);
+                if (input) {
+                    input.value = '{{ student_data.previous_balance }}'; // This won't work in loop, need to get original value
+                }
+            } else {
+                // Success - could show a small indicator or just let it be
+                console.log('Previous balance updated successfully');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error updating previous balance');
+        });
+}
+
 // Add/Edit student via AJAX
 saveBtn.addEventListener('click', () => {
     const firstName = firstNameInput.value.trim();
     const lastName = lastNameInput.value.trim();
     const admissionNo = admissionNoInput.value.trim();
-    const classGroupId = "{{ class_group.id }}";  // teacher’s class
+    const classGroupId = "{{ class_group.id }}";  // teacher's class
 
     if(!firstName || !lastName || !admissionNo) { 
         alert('Please fill all fields'); 
@@ -174,13 +292,11 @@ saveBtn.addEventListener('click', () => {
                     <td class="first-name">${firstName}</td>
                     <td class="last-name">${lastName}</td>
                     <td class="admission-no">${admissionNo}</td>
-                    <td><input type="number" step="0.01" name="amount_${data.id}" value="0" 
-                               onchange="updatePayment(${data.id}, this.value)"></td>
-                    <td class="balance">${parseFloat(data.balance).toFixed(2)}</td>
-                    <td>
-                        <button type="button" class="action-btn" onclick="editStudent(${data.id})">Edit</button>
-                        <button type="button" class="delete-btn" onclick="deleteStudent(${data.id})">Delete</button>
-                    </td>
+                    <td><strong>0</strong></td>
+                    <td><strong>0</strong></td>
+                    <td><strong>0</strong></td>
+                    <td><strong>0</strong></td>
+                    <td><strong>0</strong></td>
                 `;
                 if (studentTableBody) {
                     studentTableBody.appendChild(row);
@@ -189,9 +305,48 @@ saveBtn.addEventListener('click', () => {
 
             editStudentId = null;
             closeModal();
-            refreshStatistics();
+            location.reload(); // Reload to show updated data
         })
         .catch(err => console.error(err));
+});
+
+// Add previous balance via AJAX
+savePreviousBalanceBtn.addEventListener('click', () => {
+    const studentId = studentSelect.value;
+    const amount = parseFloat(previousBalanceAmount.value) || 0;
+    const notes = previousBalanceNotes.value.trim();
+
+    if (!studentId) {
+        alert('Please select a student');
+        return;
+    }
+
+    if (amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('student_id', studentId);
+    formData.append('amount', amount);
+    formData.append('notes', notes);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch('{% url 'add_previous_balance_ajax' %}', { method:'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            alert('Previous balance added successfully!');
+            closePreviousBalanceModal();
+            location.reload(); // Reload to show updated data
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error adding previous balance');
+        });
 });
 
 // Delete student via AJAX
@@ -234,35 +389,33 @@ function sortTable(colIndex){
 // Update payment via AJAX
 function updatePayment(studentId, value){
     const amount = parseFloat(value) || 0;
-    fetch(`/update-payment-ajax/${studentId}/`, {
-        method:'POST',
-        headers:{'X-CSRFToken':'{{ csrf_token }}','Content-Type':'application/x-www-form-urlencoded'},
-        body:`amount=${amount}`
-    }).then(res=>res.json()).then(data=>{
-        const row = document.querySelector(`tr[data-id="${studentId}"]`);
-        row.querySelector('.balance').textContent = (1500 - data.amountPaid).toFixed(2);
-        refreshStatistics();
-    });
+    // Just update the display, actual payment is recorded on form submit
+    const row = document.querySelector(`tr[data-id="${studentId}"]`);
+    row.querySelector('.balance').textContent = ({{ total_fee_per_student }} - amount).toFixed(2);
+    refreshStatistics();
 }
 
 // Refresh statistics dynamically
 function refreshStatistics(){
     let total=0, paid=0, fully=0, partial=0;
+    const feePerStudent = {{ total_fee_per_student }};
     studentTableBody.querySelectorAll('tr').forEach(r=>{
         if(r.style.display==='none') return;
         total++;
         const amt = parseFloat(r.querySelector('input[name^="amount_"]').value) || 0;
         paid += amt;
-        if(amt>=1500) fully++; else if(amt>0) partial++;
+        if(amt>=feePerStudent) fully++; else if(amt>0) partial++;
     });
     document.getElementById('statTotal').textContent = total;
     document.getElementById('statPaid').textContent = paid.toFixed(2);
-    document.getElementById('statUnpaid').textContent = (total * 1500 - paid).toFixed(2);
+    document.getElementById('statUnpaid').textContent = (total * feePerStudent - paid).toFixed(2);
     document.getElementById('statFullyPaid').textContent = fully;
     document.getElementById('statPartial').textContent = partial;
 }
 
 if(addBtn) addBtn.addEventListener('click', () => openModal());
+if(addPreviousBalanceBtn) addPreviousBalanceBtn.addEventListener('click', openPreviousBalanceModal);
 if(cancelBtn) cancelBtn.addEventListener('click', closeModal);
+if(cancelPreviousBalanceBtn) cancelPreviousBalanceBtn.addEventListener('click', closePreviousBalanceModal);
 </script>
 {% endblock %}

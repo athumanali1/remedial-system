@@ -22,6 +22,14 @@
     {% endfor %}
   </select>
 
+  <label style="margin-left:12px;">Term:</label>
+  <select name="term">
+    <option value="">All</option>
+    {% for t in terms %}
+      <option value="{{ t.id }}" {% if selected_term == t.id %}selected{% endif %}>{{ t.name }}</option>
+    {% endfor %}
+  </select>
+
   <label style="margin-left:12px;">Teacher:</label>
   <select name="teacher">
     <option value="">All</option>
@@ -31,7 +39,7 @@
   </select>
 
   <button type="submit" style="margin-left:8px;">Filter</button>
-  <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tu=t?t.value:'';var wu=w?w.value:''; var url = '{% url 'myadmin:remedial_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu); window.location.href = url; })()">Print / Download</button>
+  <button type="button" class="print-btn" onclick="(function(){var t=document.querySelector('select[name=\'teacher\']');var w=document.querySelector('select[name=\'week\']');var tm=document.querySelector('select[name=\'term\']');var tu=t?t.value:'';var wu=w?w.value:'';var tmu=tm?tm.value:''; var url = '{% url 'myadmin:remedial_stats' %}?print=1&teacher='+encodeURIComponent(tu)+'&week='+encodeURIComponent(wu)+'&term='+encodeURIComponent(tmu); window.location.href = url; })()">Print / Download</button>
 </form>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">

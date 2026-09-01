@@ -6,18 +6,44 @@
   <h1>💰 Payments Dashboard</h1>
 </div>
 
-<!-- Class Filter -->
+<!-- Academic Year and Term Filters -->
 <div class="module">
   <form method="get" action="">
-    <label for="class"><strong>Filter by Class:</strong></label>
-    <select name="class" id="class" onchange="this.form.submit()">
-      <option value="">All Classes</option>
-      {% for group in class_groups %}
-        <option value="{{ group.id }}" {% if selected_class_id == group.id|stringformat:"s" %}selected{% endif %}>
-          {{ group.name }}
-        </option>
-      {% endfor %}
-    </select>
+    <div style="display: flex; gap: 20px; align-items: center;">
+      <div>
+        <label for="academic_year"><strong>Academic Year:</strong></label>
+        <select name="academic_year" id="academic_year" onchange="this.form.submit()">
+          <option value="">All Years</option>
+          {% for year in academic_years %}
+            <option value="{{ year.id }}" {% if selected_academic_year and selected_academic_year.id == year.id %}selected{% endif %}>
+              {{ year.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="term"><strong>Term:</strong></label>
+        <select name="term" id="term" onchange="this.form.submit()">
+          <option value="">All Terms</option>
+          {% for term in terms %}
+            <option value="{{ term.id }}" {% if selected_term and selected_term.id == term.id %}selected{% endif %}>
+              {{ term.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="class"><strong>Class:</strong></label>
+        <select name="class" id="class" onchange="this.form.submit()">
+          <option value="">All Classes</option>
+          {% for group in class_groups %}
+            <option value="{{ group.id }}" {% if selected_class_id == group.id|stringformat:"s" %}selected{% endif %}>
+              {{ group.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
   </form>
 </div>
 
@@ -68,7 +94,7 @@
 
 <!-- Student List -->
 <div class="module">
-  <h2>👩‍🎓 Students{% if selected_class_obj %} in {{ selected_class_obj.name }}{% endif %}</h2>
+  <h2>👩‍🎓 Students{% if selected_class_obj %} in {{ selected_class_obj.name }}{% endif %}{% if selected_academic_year %} - {{ selected_academic_year.name }}{% endif %}{% if selected_term %} ({{ selected_term.name }}){% endif %}</h2>
   <table class="grp-table">
     <thead>
       <tr>

@@ -39,6 +39,14 @@
       <div style="font-size:1.4rem; font-weight:700; color:#ffffff;">Lukore Secondary School</div>
       <div style="font-size:0.95rem; margin-top:4px; color:#e5e7eb;">Welcome, {{ teacher.user.get_full_name }}</div>
     </div>
+    
+    {% if teacher.is_class_teacher %}
+    <div style="text-align:right;">
+      <a href="{% url 'student_payments' %}" class="btn" style="background:#3b82f6; border:1px solid #2563eb; padding:8px 16px; border-radius:4px; color:#ffffff; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+        💰 Payments
+      </a>
+    </div>
+    {% endif %}
   </div>
 </div>
 
@@ -51,6 +59,16 @@
             {% for week in weeks %}
                 <option value="{{ week.id }}" {% if week.id|stringformat:"s" == selected_week %}selected{% endif %}>
                     Week {{ week.number }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label>Term:</label>
+        <select name="term">
+            <option value="">All</option>
+            {% for t in terms %}
+                <option value="{{ t.id }}" {% if t.id|stringformat:"s" == selected_term %}selected{% endif %}>
+                    {{ t.name }}
                 </option>
             {% endfor %}
         </select>
@@ -86,16 +104,6 @@
     <div class="card"><h3>Unpaid Lessons</h3><p>{{ unpaid }}</p></div>
     <div class="card"><h3>Total Paid Amount</h3><p>${{ total_paid_amount|floatformat:2 }}</p></div>
     <div class="card"><h3>Total Unpaid Amount</h3><p>${{ total_unpaid_amount|floatformat:2 }}</p></div>
-</div>
-
-<!-- Quick Actions -->
-<div class="cards-container">
-    <div class="card">
-        <h3>Add Lesson</h3>
-        <p>Create a new lesson record.</p>
-        <a href="{% url 'add_lesson' %}" class="btn">➕ Add Lesson</a>
-    </div>
-   
 </div>
 
 <!-- Lessons Table -->
@@ -138,18 +146,6 @@
         <tr><td colspan="7">No lessons found.</td></tr>
         {% endfor %}
     </tbody>
-
-{% if teacher.is_class_teacher %}
-<div class="card">
-    <h2>💰 Student Payments</h2>
-    <p>Record student payments for your class.</p>
-    <a href="{% url 'student_payments' %}" class="btn btn-success mt-3">Go to Payments</a>
-</div>
-{% endif %}
+</table>
 
 {% endblock %}
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Save</button>
-</form>
