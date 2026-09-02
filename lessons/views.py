@@ -1251,14 +1251,16 @@ def timetable_builder(request):
     pairs = []
     for subj in subjects:
         for teacher in teachers:
-            pairs.append(
-                {
-                    "subject_id": subj.id,
-                    "teacher_id": teacher.id,
-                    "label": f"{subj.name} — {teacher}",
-                    "key": f"{subj.id}-{teacher.id}",
-                }
-            )
+            # Only include teacher-subject pairs where teacher is registered for this subject
+            if subj in teacher.subjects.all():
+                pairs.append(
+                    {
+                        "subject_id": subj.id,
+                        "teacher_id": teacher.id,
+                        "label": f"{subj.name} — {teacher}",
+                        "key": f"{subj.id}-{teacher.id}",
+                    }
+                )
 
     error_message = None
 
@@ -2005,14 +2007,16 @@ def remedial_timetable_builder(request):
     pairs = []
     for subj in subjects:
         for teacher in teachers:
-            pairs.append(
-                {
-                    "subject_id": subj.id,
-                    "teacher_id": teacher.id,
-                    "label": f"{subj.name} — {teacher}",
-                    "key": f"{subj.id}-{teacher.id}",
-                }
-            )
+            # Only include teacher-subject pairs where teacher is registered for this subject
+            if subj in teacher.subjects.all():
+                pairs.append(
+                    {
+                        "subject_id": subj.id,
+                        "teacher_id": teacher.id,
+                        "label": f"{subj.name} — {teacher}",
+                        "key": f"{subj.id}-{teacher.id}",
+                    }
+                )
 
     error_message = None
 
