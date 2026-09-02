@@ -17,6 +17,7 @@ from .models import (
     PasswordResetToken,
     JointSubject,
     JointClassGroupSet,
+    SubjectGroup,
     Student, 
     StudentPayment,
     StudentPreviousBalance
@@ -766,6 +767,14 @@ class JointClassGroupSetAdmin(admin.ModelAdmin):
     filter_horizontal = ("class_groups",)
 
 
+@admin.register(SubjectGroup)
+class SubjectGroupAdmin(admin.ModelAdmin):
+    list_display = ("name", "active", "academic_year", "joint_class_group")
+    list_filter = ("active", "academic_year", "joint_class_group")
+    filter_horizontal = ("subjects",)
+    search_fields = ("name",)
+
+
 # ----------------------------
 # Custom filter for class in LessonRecord
 # ----------------------------
@@ -950,6 +959,7 @@ admin_site.register(NormalLessonAttendance, NormalLessonAttendanceAdmin)
 admin_site.register(LessonRecord, LessonRecordAdmin)
 admin_site.register(JointSubject, JointSubjectAdmin)
 admin_site.register(JointClassGroupSet, JointClassGroupSetAdmin)
+admin_site.register(SubjectGroup, SubjectGroupAdmin)
 admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
 admin_site.register(PasswordResetToken, PasswordResetTokenAdmin)

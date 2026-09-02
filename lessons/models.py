@@ -334,6 +334,31 @@ class JointClassGroupSet(models.Model):
         return f"JointClassGroupSet({self.name})"
 
 
+class SubjectGroup(models.Model):
+    """Group of subjects that run together in the same time slot (e.g., technical electives)."""
+    name = models.CharField(max_length=100, help_text="e.g., Technical Subjects")
+    subjects = models.ManyToManyField(Subject, help_text="Subjects that run together")
+    joint_class_group = models.ForeignKey(
+        JointClassGroupSet,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Optional: restrict to specific joint class group"
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        help_text="Optional: restrict to specific academic year"
+    )
+    active = models.BooleanField(default=True)
+
+    def __str__(self) -> str:  # pragma: no cover - simple representation
+        status = "active" if self.active else "inactive"
+        return f"SubjectGroup({self.name} - {status})"
+
+
 # ----------------------------
 # LessonRecord model (remedial/normal unified records)
 # ----------------------------

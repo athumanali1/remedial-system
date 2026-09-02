@@ -1460,7 +1460,7 @@ def timetable_builder(request):
 
     # ----- Joint class configuration for auto-copy in the builder -----
     from collections import defaultdict
-    from .models import JointSubject, JointClassGroupSet
+    from .models import JointSubject, JointClassGroupSet, SubjectGroup
 
     # Joint subjects come from JointSubject entries marked active.
     joint_subject_ids = list(
@@ -1484,6 +1484,25 @@ def timetable_builder(request):
         for cid in ids:
             joint_class_group_tags[cid] = tag
 
+    # ----- Subject group configuration for auto-population -----
+    # Build mapping of subject IDs to other subjects in the same group
+    # Also track which joint class groups each subject group applies to
+    subject_group_mapping = {}
+    subject_group_class_sets = {}  # Maps subject_id -> set of joint class group names
+    for group in SubjectGroup.objects.filter(active=True).prefetch_related("subjects", "joint_class_group__class_groups"):
+        subject_ids = list(group.subjects.values_list("id", flat=True))
+        joint_group_name = group.joint_class_group.name if group.joint_class_group else None
+        
+        for sid in subject_ids:
+            # Map each subject to all other subjects in its group
+            subject_group_mapping[sid] = [other_id for other_id in subject_ids if other_id != sid]
+            
+            # Track which joint class group this subject group applies to
+            if joint_group_name:
+                if sid not in subject_group_class_sets:
+                    subject_group_class_sets[sid] = set()
+                subject_group_class_sets[sid].add(joint_group_name)
+
     context = {
         "error_message": error_message,
         "class_groups_all": class_groups_all,
@@ -1496,6 +1515,8 @@ def timetable_builder(request):
         "joint_subject_ids": joint_subject_ids,
         "joint_class_group_tags": joint_class_group_tags,
         "joint_group_members": joint_group_members,
+        "subject_group_mapping": subject_group_mapping,
+        "subject_group_class_sets": subject_group_class_sets,
     }
 
     return render(request, "lessons/timetable_builder.html", context)
@@ -2191,7 +2212,7 @@ def remedial_timetable_builder(request):
 
     # ----- Joint class configuration for auto-copy in the remedial builder -----
     from collections import defaultdict
-    from .models import JointSubject, JointClassGroupSet
+    from .models import JointSubject, JointClassGroupSet, SubjectGroup
 
     joint_subject_ids = list(
         JointSubject.objects.filter(active=True).values_list("subject_id", flat=True)
@@ -2212,6 +2233,21 @@ def remedial_timetable_builder(request):
         for cid in ids:
             joint_class_group_tags[cid] = tag
 
+    # ----- Subject group configuration for auto-population -----
+    subject_group_mapping = {}
+    subject_group_class_sets = {}
+    for group in SubjectGroup.objects.filter(active=True).prefetch_related("subjects", "joint_class_group__class_groups"):
+        subject_ids = list(group.subjects.values_list("id", flat=True))
+        joint_group_name = group.joint_class_group.name if group.joint_class_group else None
+        
+        for sid in subject_ids:
+            subject_group_mapping[sid] = [other_id for other_id in subject_ids if other_id != sid]
+            
+            if joint_group_name:
+                if sid not in subject_group_class_sets:
+                    subject_group_class_sets[sid] = set()
+                subject_group_class_sets[sid].add(joint_group_name)
+
     context = {
         "error_message": error_message,
         "class_groups_all": class_groups_all,
@@ -2224,6 +2260,8 @@ def remedial_timetable_builder(request):
         "joint_subject_ids": joint_subject_ids,
         "joint_class_group_tags": joint_class_group_tags,
         "joint_group_members": joint_group_members,
+        "subject_group_mapping": subject_group_mapping,
+        "subject_group_class_sets": subject_group_class_sets,
     }
     return render(request, "lessons/remedial_timetable_builder.html", context)
 
