@@ -165,9 +165,9 @@
 </form>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var JOINT_SUBJECT_IDS = new Set([
+    var JOINT_SUBJECT_IDS = [
       {% for sid in joint_subject_ids %}{{ sid }}{% if not forloop.last %}, {% endif %}{% endfor %}
-    ]);
+    ];
 
     var JOINT_CLASS_GROUP = {
       {% for cid, tag in joint_class_group_tags.items %}
