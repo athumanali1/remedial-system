@@ -249,76 +249,90 @@
         var et = m[4];
         var idx = m[5];
 
-        // Handle joint subjects auto-copy
-        if (JOINT_SUBJECT_IDS.has(subjId)) {
-          var groupTag = JOINT_CLASS_GROUP[classId];
-          if (!groupTag) return;  // class not in a joint group
-
-          var members = JOINT_GROUP_MEMBERS[groupTag] || [];
-          members.forEach(function(otherId) {
-            if (otherId === classId) return;
-            var otherName = 'cell_' + otherId + '_' + day + '_' + st + '_' + et + '_' + idx;
-            var otherSel = document.querySelector('select[name="' + otherName + '"]');
-            if (!otherSel) return;
-            otherSel.value = val;
-
-            // Ensure its container is visible if it was hidden (for lesson 2/3)
-            var cont = otherSel.closest('.lesson-select');
-            if (cont && cont.style.display === 'none') {
-              cont.style.display = '';
-            }
-          });
+        // Handle joint subject auto-copy (same subject, different classes)
+        if (JOINT_SUBJECT_IDS.indexOf(subjId) !== -1) {
+          var classGroupTag = JOINT_CLASS_GROUP[classId];
+          if (classGroupTag) {
+            var members = JOINT_GROUP_MEMBERS[classGroupTag] || [];
+            members.forEach(function(otherClassId) {
+              if (otherClassId === classId) return;
+              var otherSel = document.querySelector('select[name="cell_' + otherClassId + '_' + day + '_' + st + '_' + et + '_' + idx + '"]');
+              if (otherSel) {
+                otherSel.value = sel.value;
+                var cont = otherSel.closest('.lesson-select');
+                if (cont && cont.style.display === 'none') {
+                  cont.style.display = '';
+                }
+              }
+            });
+          }
         }
 
         // Handle subject group auto-population (different subjects, same class)
         var relatedSubjectIds = SUBJECT_GROUP_MAPPING[subjId] || [];
         var applicableClassSets = SUBJECT_GROUP_CLASS_SETS[subjId] || [];
         if (relatedSubjectIds.length > 0) {
-          // Check if this class is in any applicable joint class group
-          var classInApplicableSet = false;
-          if (applicableClassSets.length === 0) {
-            // No restriction - applies to all classes
-            classInApplicableSet = true;
-          } else {
-            // Check if class is in one of the applicable joint class groups
-            var currentClassGroupTag = JOINT_CLASS_GROUP[classId];
-            if (currentClassGroupTag && applicableClassSets.indexOf(currentClassGroupTag) !== -1) {
-              classInApplicableSet = true;
+          // Determine which classes to populate (selected class + joint class members if applicable)
+          var classesToPopulate = [classId];
+          if (JOINT_SUBJECT_IDS.indexOf(subjId) !== -1) {
+            var classGroupTag = JOINT_CLASS_GROUP[classId];
+            if (classGroupTag) {
+              var members = JOINT_GROUP_MEMBERS[classGroupTag] || [];
+              members.forEach(function(otherClassId) {
+                if (otherClassId !== classId && classesToPopulate.indexOf(otherClassId) === -1) {
+                  classesToPopulate.push(otherClassId);
+                }
+              });
             }
           }
-          
-          if (classInApplicableSet) {
-            // Find all empty slots in this cell
-            var emptySlots = [];
-            var allSelects = document.querySelectorAll('select[name^="cell_' + classId + '_' + day + '_' + st + '_' + et + '_"]');
-            allSelects.forEach(function(s) {
-              if (s === sel) return;
-              if (!s.value || s.value === '') {
-                emptySlots.push(s);
+
+          // Populate for each class in the list
+          classesToPopulate.forEach(function(targetClassId) {
+            // Check if this class is in any applicable joint class group
+            var classInApplicableSet = false;
+            if (applicableClassSets.length === 0) {
+              // No restriction - applies to all classes
+              classInApplicableSet = true;
+            } else {
+              // Check if class is in one of the applicable joint class groups
+              var currentClassGroupTag = JOINT_CLASS_GROUP[targetClassId];
+              if (currentClassGroupTag && applicableClassSets.indexOf(currentClassGroupTag) !== -1) {
+                classInApplicableSet = true;
               }
-            });
-            
-            // Populate each empty slot with a different subject from the group
-            relatedSubjectIds.forEach(function(otherSubjId, idx) {
-              if (idx < emptySlots.length) {
-                var targetSelect = emptySlots[idx];
-                var teacherSubjectPairs = {{ pairs|safe }};
-                for (var i = 0; i < teacherSubjectPairs.length; i++) {
-                  if (teacherSubjectPairs[i].subject_id === otherSubjId) {
-                    targetSelect.value = teacherSubjectPairs[i].subject_id + '-' + teacherSubjectPairs[i].teacher_id;
-                    var cont = targetSelect.closest('.lesson-select');
-                    if (cont && cont.style.display === 'none') {
-                      cont.style.display = '';
+            }
+
+            if (classInApplicableSet) {
+              // Find all empty slots in this cell for this class
+              var emptySlots = [];
+              var allSelects = document.querySelectorAll('select[name^="cell_' + targetClassId + '_' + day + '_' + st + '_' + et + '_"]');
+              allSelects.forEach(function(s) {
+                if (s === sel) return;
+                if (!s.value || s.value === '') {
+                  emptySlots.push(s);
+                }
+              });
+              
+              // Populate each empty slot with a different subject from the group
+              relatedSubjectIds.forEach(function(otherSubjId, idx) {
+                if (idx < emptySlots.length) {
+                  var targetSelect = emptySlots[idx];
+                  var teacherSubjectPairs = {{ pairs|safe }};
+                  for (var i = 0; i < teacherSubjectPairs.length; i++) {
+                    if (teacherSubjectPairs[i].subject_id === otherSubjId) {
+                      targetSelect.value = teacherSubjectPairs[i].subject_id + '-' + teacherSubjectPairs[i].teacher_id;
+                      var cont = targetSelect.closest('.lesson-select');
+                      if (cont && cont.style.display === 'none') {
+                        cont.style.display = '';
+                      }
+                      break;
                     }
-                    break;
                   }
                 }
-              }
-            });
-          }
+              });
+            }
+          });
         }
       });
     });
   });
 </script>
-{% endblock %}
