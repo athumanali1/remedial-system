@@ -271,26 +271,32 @@
           }
           
           if (classInApplicableSet) {
-            relatedSubjectIds.forEach(function(otherSubjId) {
-              // Find an empty select element in the same cell
-              var allSelects = document.querySelectorAll('select[name^="cell_' + classId + '_' + day + '_' + st + '_' + et + '_"]');
-              allSelects.forEach(function(s) {
-                if (s === sel) return;
-                if (!s.value || s.value === '') {
-                  // Found empty slot - populate with the related subject
-                  var teacherSubjectPairs = {{ pairs|safe }};
-                  for (var i = 0; i < teacherSubjectPairs.length; i++) {
-                    if (teacherSubjectPairs[i].subject_id === otherSubjId) {
-                      s.value = teacherSubjectPairs[i].subject_id + '-' + teacherSubjectPairs[i].teacher_id;
-                      var cont = s.closest('.lesson-select');
-                      if (cont && cont.style.display === 'none') {
-                        cont.style.display = '';
-                      }
-                      break;
+            // Find all empty slots in this cell
+            var emptySlots = [];
+            var allSelects = document.querySelectorAll('select[name^="cell_' + classId + '_' + day + '_' + st + '_' + et + '_"]');
+            allSelects.forEach(function(s) {
+              if (s === sel) return;
+              if (!s.value || s.value === '') {
+                emptySlots.push(s);
+              }
+            });
+            
+            // Populate each empty slot with a different subject from the group
+            relatedSubjectIds.forEach(function(otherSubjId, idx) {
+              if (idx < emptySlots.length) {
+                var targetSelect = emptySlots[idx];
+                var teacherSubjectPairs = {{ pairs|safe }};
+                for (var i = 0; i < teacherSubjectPairs.length; i++) {
+                  if (teacherSubjectPairs[i].subject_id === otherSubjId) {
+                    targetSelect.value = teacherSubjectPairs[i].subject_id + '-' + teacherSubjectPairs[i].teacher_id;
+                    var cont = targetSelect.closest('.lesson-select');
+                    if (cont && cont.style.display === 'none') {
+                      cont.style.display = '';
                     }
+                    break;
                   }
                 }
-              });
+              }
             });
           }
         }
