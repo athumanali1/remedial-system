@@ -272,13 +272,12 @@
           
           if (classInApplicableSet) {
             relatedSubjectIds.forEach(function(otherSubjId) {
+              // Find an empty select element in the same cell
               var allSelects = document.querySelectorAll('select[name^="cell_' + classId + '_' + day + '_' + st + '_' + et + '_"]');
               allSelects.forEach(function(s) {
                 if (s === sel) return;
-                var sParts = s.value.split('-');
-                if (sParts.length < 2) return;
-                var sSubjId = parseInt(sParts[0], 10);
-                if (sSubjId === otherSubjId && !s.value) {
+                if (!s.value || s.value === '') {
+                  // Found empty slot - populate with the related subject
                   var teacherSubjectPairs = {{ pairs|safe }};
                   for (var i = 0; i < teacherSubjectPairs.length; i++) {
                     if (teacherSubjectPairs[i].subject_id === otherSubjId) {

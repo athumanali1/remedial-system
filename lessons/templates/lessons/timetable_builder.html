@@ -289,21 +289,12 @@
           
           if (classInApplicableSet) {
             relatedSubjectIds.forEach(function(otherSubjId) {
-              // Find the teacher for this subject in the pairs
-              var targetPair = null;
-              var teacherId = parseInt(parts[1], 10);
-              // Find a pair with the other subject and same teacher if available
-              // Otherwise, find any teacher for that subject
+              // Find an empty select element in the same cell
               var allSelects = document.querySelectorAll('select[name^="cell_' + classId + '_' + day + '_' + st + '_' + et + '_"]');
               allSelects.forEach(function(s) {
                 if (s === sel) return;  // skip current select
-                var sParts = s.value.split('-');
-                if (sParts.length < 2) return;
-                var sSubjId = parseInt(sParts[0], 10);
-                if (sSubjId === otherSubjId && !s.value) {
-                  // Found empty slot for the related subject
-                  // Find the appropriate teacher-subject pair
-                  // For now, just populate with the first available teacher for this subject
+                if (!s.value || s.value === '') {
+                  // Found empty slot - populate with the related subject
                   var teacherSubjectPairs = {{ pairs|safe }};
                   for (var i = 0; i < teacherSubjectPairs.length; i++) {
                     if (teacherSubjectPairs[i].subject_id === otherSubjId) {
