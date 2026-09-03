@@ -236,6 +236,12 @@
           return;
         }
         
+        // Prevent default browser typing behavior
+        if (e.key.length === 1) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        
         // Clear previous timer
         if (typingTimer) clearTimeout(typingTimer);
         
@@ -279,8 +285,6 @@
               select.appendChild(option);
             }
           }, 1000);
-          
-          e.preventDefault();
         }
       });
     });
