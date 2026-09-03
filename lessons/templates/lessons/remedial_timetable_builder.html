@@ -242,7 +242,8 @@
         
         for (var i = 0; i < originalOptions.length; i++) {
           var opt = originalOptions[i];
-          if (opt.text.toLowerCase().indexOf(filterText) !== -1 || filterText === '') {
+          // Always show the selected value, even if it doesn't match the filter
+          if (opt.text.toLowerCase().indexOf(filterText) !== -1 || filterText === '' || opt.selected) {
             var option = document.createElement('option');
             option.value = opt.value;
             option.text = opt.text;
