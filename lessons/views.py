@@ -608,9 +608,25 @@ def normal_teacher_details(request, teacher_id):
     # Week may come through as a string like "None"; normalise to int or None
     raw_week = request.GET.get("week")
     try:
-        week_id = int(raw_week) if raw_week and str(raw_week).isdigit() else None
+        week_id = int(raw_week) if raw_week and str(raw_week).strip() and str(raw_week).strip().isdigit() else None
     except (TypeError, ValueError):
         week_id = None
+
+    # Default to most recent week if no week is selected (same logic as overview)
+    if week_id is None:
+        try:
+            current_week = Week.objects.filter(
+                start_date__lte=datetime.now().date(),
+                end_date__gte=datetime.now().date()
+            ).first()
+            if current_week:
+                week_id = current_week.id
+            else:
+                recent_week = Week.objects.order_by('-start_date').first()
+                if recent_week:
+                    week_id = recent_week.id
+        except:
+            pass
     normal_selected_day = request.GET.get("normal_day")
     normal_selected_date = request.GET.get("normal_date")
 
@@ -712,6 +728,10 @@ def normal_teacher_details(request, teacher_id):
             rows_map[key]["slot_ids"].append(slot.id)
 
     rows = list(rows_map.values())
+
+    # Sort by day order then time
+    day_order = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4}
+    rows.sort(key=lambda r: (day_order.get(r['day'], 99), r['start']))
 
     # Aggregates based on logical rows, not raw attendance records
     total = len(rows)
