@@ -730,12 +730,6 @@ def normal_teacher_details(request, teacher_id):
         else:
             rows_map[key]["slot_ids"].append(slot.id)
 
-    # Debug: print keys and counts
-    import sys
-    print(f"DEBUG: Total attendances: {len(attendances)}", file=sys.stderr)
-    print(f"DEBUG: Unique keys: {len(rows_map)}", file=sys.stderr)
-    print(f"DEBUG: Keys: {list(rows_map.keys())}", file=sys.stderr)
-
     # For joint classes (multiple class groups), simplify the label
     for key, row in rows_map.items():
         if len(class_groups_per_key[key]) > 1:
