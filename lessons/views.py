@@ -1481,16 +1481,16 @@ def timetable_builder(request):
 
                 base = f"{cg.id}_{tt.day}_{st_key}_{et_key}"
 
-                # Place into the first free slot 1..3 in a stable way
+                # Place into the first free slot 1..5 in a stable way
                 placed = False
-                for idx in (1, 2, 3):
+                for idx in (1, 2, 3, 4, 5):
                     key = f"{base}_{idx}"
                     if key not in current:
                         current[key] = value
                         placed = True
                         break
                 if not placed:
-                    # If all three are already used, we ignore extras.
+                    # If all five are already used, we ignore extras.
                     continue
 
     # ----- Joint class configuration for auto-copy in the builder -----
