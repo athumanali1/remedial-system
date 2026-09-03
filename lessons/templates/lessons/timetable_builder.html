@@ -218,6 +218,76 @@
       });
     });
 
+    // Add typing filter to dropdowns
+    document.querySelectorAll('.tt-cell .lesson-select select').forEach(function(select) {
+      var originalOptions = [];
+      var typingTimer = null;
+      var typingText = '';
+      
+      // Store original options
+      for (var i = 0; i < select.options.length; i++) {
+        originalOptions.push({
+          value: select.options[i].value,
+          text: select.options[i].text,
+          selected: select.options[i].selected
+        });
+      }
+      
+      select.addEventListener('keydown', function(e) {
+        // Allow navigation keys
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Tab' || e.key === 'Escape') {
+          return;
+        }
+        
+        // Clear previous timer
+        if (typingTimer) clearTimeout(typingTimer);
+        
+        // Add character to typing text
+        if (e.key.length === 1) {
+          typingText += e.key.toLowerCase();
+          
+          // Filter options
+          select.innerHTML = '';
+          var hasMatch = false;
+          for (var i = 0; i < originalOptions.length; i++) {
+            var opt = originalOptions[i];
+            // Always show selected value and matching options
+            if (opt.text.toLowerCase().indexOf(typingText) !== -1 || opt.selected) {
+              var option = document.createElement('option');
+              option.value = opt.value;
+              option.text = opt.text;
+              if (opt.selected) {
+                option.selected = true;
+              }
+              select.appendChild(option);
+              if (!opt.selected && !hasMatch && opt.text.toLowerCase().indexOf(typingText) !== -1) {
+                hasMatch = true;
+              }
+            }
+          }
+          
+          // Clear typing text after 1 second
+          typingTimer = setTimeout(function() {
+            typingText = '';
+            // Restore all options
+            select.innerHTML = '';
+            for (var i = 0; i < originalOptions.length; i++) {
+              var opt = originalOptions[i];
+              var option = document.createElement('option');
+              option.value = opt.value;
+              option.text = opt.text;
+              if (opt.selected) {
+                option.selected = true;
+              }
+              select.appendChild(option);
+            }
+          }, 1000);
+          
+          e.preventDefault();
+        }
+      });
+    });
+
     // Auto-copy joint subjects within joint class groups
     // Expose for debugging in console
     window.JOINT_SUBJECT_IDS = JOINT_SUBJECT_IDS;
