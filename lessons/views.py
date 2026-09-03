@@ -707,7 +707,7 @@ def normal_teacher_details(request, teacher_id):
             slot.day,
             slot.start_time,
             slot.end_time,
-            slot.subject_fk.name if slot.subject_fk else "",
+            slot.subject_fk_id if slot.subject_fk else None,
         )
 
         if key not in class_groups_per_key:
