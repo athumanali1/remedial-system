@@ -56,6 +56,18 @@
       </option>
     {% endfor %}
   </select>
+
+  <label>Day:</label>
+  <select name="day">
+    <option value="">All</option>
+    <option value="Mon" {% if selected_day == "Mon" %}selected{% endif %}>Monday</option>
+    <option value="Tue" {% if selected_day == "Tue" %}selected{% endif %}>Tuesday</option>
+    <option value="Wed" {% if selected_day == "Wed" %}selected{% endif %}>Wednesday</option>
+    <option value="Thu" {% if selected_day == "Thu" %}selected{% endif %}>Thursday</option>
+    <option value="Fri" {% if selected_day == "Fri" %}selected{% endif %}>Friday</option>
+    <option value="Sat" {% if selected_day == "Sat" %}selected{% endif %}>Saturday</option>
+  </select>
+
   <button type="submit">Apply</button>
 </form>
 

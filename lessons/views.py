@@ -829,6 +829,7 @@ def teacher_normal_stats(request):
         week_id = None
     normal_selected_day = request.GET.get("normal_day")
     normal_selected_date = request.GET.get("normal_date")
+    selected_day = request.GET.get("day")
 
     # Handle inline status change POST from the template - only for deputy/admin
     # Teachers can only view, not edit attendance
@@ -887,6 +888,8 @@ def teacher_normal_stats(request):
 
     if normal_selected_day:
         attendances = attendances.filter(slot__day=normal_selected_day)
+    elif selected_day:
+        attendances = attendances.filter(slot__day=selected_day)
 
     if normal_selected_date:
         try:
@@ -928,6 +931,10 @@ def teacher_normal_stats(request):
 
     rows = list(rows_map.values())
 
+    # Sort by day order then time
+    day_order = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5}
+    rows.sort(key=lambda x: (day_order.get(x.get('day', ''), 99), x.get('start', '')))
+
     # Aggregates based on logical rows
     total = len(rows)
     attended = sum(1 for r in rows if str(r["status"]).lower() == "attended".lower())
@@ -943,6 +950,7 @@ def teacher_normal_stats(request):
         "selected_academic_year": selected_year,
         "normal_selected_day": normal_selected_day,
         "normal_selected_date": normal_selected_date,
+        "selected_day": selected_day,
         "rows": rows,
         "total": total,
         "attended": attended,
