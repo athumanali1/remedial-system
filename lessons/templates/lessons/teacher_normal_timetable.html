@@ -129,9 +129,29 @@
                     <td class="tt-cell tt-{{ cell_color }}">
                       {% if slots_for_time %}
                         {% for s in slots_for_time %}
-                          {{ s.class_group.name|short_class }}<br/>
-                          {{ s.subject_fk.name|short_subject }}
-                          {% if not forloop.last %}<hr/>{% endif %}
+                          {% if forloop.first %}
+                            {% if slots_for_time|length > 1 %}
+                              {% with class_name=s.class_group.name %}
+                                {% with parts=class_name|split:" " %}
+                                  {% if parts|length >= 2 %}
+                                    {% with directions="NORTH,SOUTH,EAST,WEST,North,South,East,West"|split:"," %}
+                                      {% if parts.1 in directions %}
+                                        {{ parts.0 }}<br/>
+                                      {% else %}
+                                        {{ parts.0 }} {{ parts.1 }}<br/>
+                                      {% endif %}
+                                    {% endwith %}
+                                  {% else %}
+                                    {{ class_name }}<br/>
+                                  {% endif %}
+                                {% endwith %}
+                              {% endwith %}
+                              {{ s.subject_fk.name|short_subject }}
+                            {% else %}
+                              {{ s.class_group.name|short_class }}<br/>
+                              {{ s.subject_fk.name|short_subject }}
+                            {% endif %}
+                          {% endif %}
                         {% endfor %}
                       {% else %}
                         &mdash;

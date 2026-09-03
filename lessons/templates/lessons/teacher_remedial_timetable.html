@@ -129,11 +129,31 @@
                     <td class="tt-cell tt-{{ cell_color }}">
                       {% if tts %}
                         {% for tt in tts %}
-                          {% for cg in tt.class_groups.all %}
-                            {{ cg.name|short_class }}{% if not forloop.last %}, {% endif %}
-                          {% endfor %}<br/>
-                          {{ tt.subject_fk.name|short_subject }}
-                          {% if not forloop.last %}<hr/>{% endif %}
+                          {% if forloop.first %}
+                            {% if tts|length > 1 %}
+                              {% with class_name=tt.class_groups.all.0.name %}
+                                {% with parts=class_name|split:" " %}
+                                  {% if parts|length >= 2 %}
+                                    {% with directions="NORTH,SOUTH,EAST,WEST,North,South,East,West"|split:"," %}
+                                      {% if parts.1 in directions %}
+                                        {{ parts.0 }}<br/>
+                                      {% else %}
+                                        {{ parts.0 }} {{ parts.1 }}<br/>
+                                      {% endif %}
+                                    {% endwith %}
+                                  {% else %}
+                                    {{ class_name }}<br/>
+                                  {% endif %}
+                                {% endwith %}
+                              {% endwith %}
+                              {{ tt.subject_fk.name|short_subject }}
+                            {% else %}
+                              {% for cg in tt.class_groups.all %}
+                                {{ cg.name|short_class }}{% if not forloop.last %}, {% endif %}
+                              {% endfor %}<br/>
+                              {{ tt.subject_fk.name|short_subject }}
+                            {% endif %}
+                          {% endif %}
                         {% endfor %}
                       {% else %}
                         &mdash;

@@ -65,3 +65,11 @@ def has_group(user, group_name):
         return user.groups.filter(name__iexact=group_name).exists()
     except Exception:
         return False
+
+
+@register.filter
+def split(value, separator):
+    """Split a string by separator and return as list."""
+    if not isinstance(value, str):
+        return []
+    return value.split(separator)
