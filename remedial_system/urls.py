@@ -28,7 +28,7 @@ urlpatterns = [
     path("admin/normal-stats/", lesson_views.deputy_normal_stats, name="deputy_normal_stats"),
     path(
         "admin/normal-stats/teacher/<int:teacher_id>/",
-        lesson_views.remedial_teacher_details,
+        lesson_views.normal_teacher_details,
         name="deputy_normal_teacher_details",
     ),
 
