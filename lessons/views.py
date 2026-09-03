@@ -715,11 +715,8 @@ def normal_teacher_details(request, teacher_id):
         class_groups_per_key[key].add(slot.class_group.name)
 
         if key not in rows_map:
-            # Generalise the class label e.g. "Form 2 West" -> "Form 2"
+            # Use full class label initially
             base_label = slot.class_group.name
-            parts = base_label.split()
-            if len(parts) >= 2:
-                base_label = " ".join(parts[:2])
 
             rows_map[key] = {
                 "day": slot.day,
@@ -736,7 +733,7 @@ def normal_teacher_details(request, teacher_id):
     # For joint classes (multiple class groups), simplify the label
     for key, row in rows_map.items():
         if len(class_groups_per_key[key]) > 1:
-            # This is a joint class - simplify label
+            # This is a joint class - simplify label by removing direction words
             base_label = list(class_groups_per_key[key])[0]
             parts = base_label.split()
             directions = {'NORTH', 'SOUTH', 'EAST', 'WEST', 'North', 'South', 'East', 'West'}
