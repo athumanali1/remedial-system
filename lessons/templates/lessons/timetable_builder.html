@@ -83,7 +83,6 @@
                     {% with key1=base|add:"_1" %}
                       {% with selected1=current|dict_get:key1 %}
                         <div class="lesson-select" data-index="1">
-                          <input type="text" class="lesson-filter" placeholder="Filter..." style="width:100%; margin-bottom:4px; padding:2px 4px; font-size:12px;">
                           <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_1">
                             <option value="" {% if not selected1 %}selected{% endif %}>-- Empty --</option>
                             {% for p in pairs %}
@@ -98,7 +97,6 @@
                     {% with key2=base|add:"_2" %}
                       {% with selected2=current|dict_get:key2 %}
                         <div class="lesson-select" data-index="2" {% if not selected2 %}style="display:none;"{% endif %}>
-                          <input type="text" class="lesson-filter" placeholder="Filter..." style="width:100%; margin-bottom:4px; padding:2px 4px; font-size:12px;">
                           <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_2" style="margin-top:4px;">
                             <option value="" {% if not selected2 %}selected{% endif %}>-- Empty --</option>
                             {% for p in pairs %}
@@ -113,7 +111,6 @@
                     {% with key3=base|add:"_3" %}
                       {% with selected3=current|dict_get:key3 %}
                         <div class="lesson-select" data-index="3" {% if not selected3 %}style="display:none;"{% endif %}>
-                          <input type="text" class="lesson-filter" placeholder="Filter..." style="width:100%; margin-bottom:4px; padding:2px 4px; font-size:12px;">
                           <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_3" style="margin-top:4px;">
                             <option value="" {% if not selected3 %}selected{% endif %}>-- Empty --</option>
                             {% for p in pairs %}
@@ -128,7 +125,6 @@
                     {% with key4=base|add:"_4" %}
                       {% with selected4=current|dict_get:key4 %}
                         <div class="lesson-select" data-index="4" {% if not selected4 %}style="display:none;"{% endif %}>
-                          <input type="text" class="lesson-filter" placeholder="Filter..." style="width:100%; margin-bottom:4px; padding:2px 4px; font-size:12px;">
                           <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_4" style="margin-top:4px;">
                             <option value="" {% if not selected4 %}selected{% endif %}>-- Empty --</option>
                             {% for p in pairs %}
@@ -143,7 +139,6 @@
                     {% with key5=base|add:"_5" %}
                       {% with selected5=current|dict_get:key5 %}
                         <div class="lesson-select" data-index="5" {% if not selected5 %}style="display:none;"{% endif %}>
-                          <input type="text" class="lesson-filter" placeholder="Filter..." style="width:100%; margin-bottom:4px; padding:2px 4px; font-size:12px;">
                           <select name="cell_{{ cg.id }}_{{ d }}_{{ st_key }}_{{ et_key }}_5" style="margin-top:4px;">
                             <option value="" {% if not selected5 %}selected{% endif %}>-- Empty --</option>
                             {% for p in pairs %}
@@ -218,42 +213,6 @@
           if (selects[i].style.display === 'none') {
             selects[i].style.display = '';
             break;
-          }
-        }
-      });
-    });
-
-    // Add filter functionality to lesson dropdowns
-    document.querySelectorAll('.lesson-filter').forEach(function(filterInput) {
-      var select = filterInput.nextElementSibling;
-      var originalOptions = [];
-      
-      // Store original options
-      for (var i = 0; i < select.options.length; i++) {
-        originalOptions.push({
-          value: select.options[i].value,
-          text: select.options[i].text,
-          selected: select.options[i].selected
-        });
-      }
-      
-      filterInput.addEventListener('input', function() {
-        var filterText = this.value.toLowerCase();
-        
-        // Clear and repopulate options
-        select.innerHTML = '';
-        
-        for (var i = 0; i < originalOptions.length; i++) {
-          var opt = originalOptions[i];
-          // Always show the selected value, even if it doesn't match the filter
-          if (opt.text.toLowerCase().indexOf(filterText) !== -1 || filterText === '' || opt.selected) {
-            var option = document.createElement('option');
-            option.value = opt.value;
-            option.text = opt.text;
-            if (opt.selected) {
-              option.selected = true;
-            }
-            select.appendChild(option);
           }
         }
       });
