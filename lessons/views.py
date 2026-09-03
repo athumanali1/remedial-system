@@ -709,12 +709,15 @@ def normal_teacher_details(request, teacher_id):
         )
 
         if key not in rows_map:
-            # For joint lessons, use only the grade/form level (first part)
-            # e.g. "Form 2 West" -> "Form 2", "G10 NORTH" -> "G10"
+            # For joint lessons, remove direction words but keep form/grade number
+            # e.g. "Form 2 West" -> "Form 2", "G10 NORTH" -> "G10", "FORM 3" -> "FORM 3"
             base_label = slot.class_group.name
             parts = base_label.split()
-            if len(parts) >= 1:
+            directions = {'NORTH', 'SOUTH', 'EAST', 'WEST', 'North', 'South', 'East', 'West'}
+            if len(parts) >= 2 and parts[1] in directions:
                 base_label = parts[0]
+            elif len(parts) >= 2:
+                base_label = " ".join(parts[:2])
 
             rows_map[key] = {
                 "day": slot.day,
