@@ -699,6 +699,8 @@ def normal_teacher_details(request, teacher_id):
     # Build rows per logical lesson (day, start, end, subject), collapsing
     # joint classes so they appear as a single row.
     rows_map = {}
+    class_groups_per_key = {}  # Track which class groups belong to each key
+    
     for att in attendances:
         slot = att.slot
         key = (
@@ -708,15 +710,15 @@ def normal_teacher_details(request, teacher_id):
             slot.subject_fk.name if slot.subject_fk else "",
         )
 
+        if key not in class_groups_per_key:
+            class_groups_per_key[key] = set()
+        class_groups_per_key[key].add(slot.class_group.name)
+
         if key not in rows_map:
-            # For joint lessons, remove direction words but keep form/grade number
-            # e.g. "Form 2 West" -> "Form 2", "G10 NORTH" -> "G10", "FORM 3" -> "FORM 3"
+            # Generalise the class label e.g. "Form 2 West" -> "Form 2"
             base_label = slot.class_group.name
             parts = base_label.split()
-            directions = {'NORTH', 'SOUTH', 'EAST', 'WEST', 'North', 'South', 'East', 'West'}
-            if len(parts) >= 2 and parts[1] in directions:
-                base_label = parts[0]
-            elif len(parts) >= 2:
+            if len(parts) >= 2:
                 base_label = " ".join(parts[:2])
 
             rows_map[key] = {
@@ -730,6 +732,18 @@ def normal_teacher_details(request, teacher_id):
             }
         else:
             rows_map[key]["slot_ids"].append(slot.id)
+
+    # For joint classes (multiple class groups), simplify the label
+    for key, row in rows_map.items():
+        if len(class_groups_per_key[key]) > 1:
+            # This is a joint class - simplify label
+            base_label = list(class_groups_per_key[key])[0]
+            parts = base_label.split()
+            directions = {'NORTH', 'SOUTH', 'EAST', 'WEST', 'North', 'South', 'East', 'West'}
+            if len(parts) >= 2 and parts[1] in directions:
+                row["class_label"] = parts[0]
+            elif len(parts) >= 2:
+                row["class_label"] = " ".join(parts[:2])
 
     rows = list(rows_map.values())
 
