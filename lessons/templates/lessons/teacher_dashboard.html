@@ -5,6 +5,27 @@
 
 {% block content %}
 
+<style>
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+.pagination a, .pagination span {
+    padding: 8px 16px;
+    margin: 0 4px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    display: inline-block;
+}
+.pagination a:hover {
+    background-color: #f1f1f1;
+}
+.pagination span {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}
+</style>
+
 <!-- Profile Section with school badge background like website home page -->
 <div style="
     background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(245, 248, 252, 0.95)),
@@ -89,6 +110,17 @@
             {% endfor %}
         </select>
 
+        <label>Day:</label>
+        <select name="day">
+            <option value="">All</option>
+            <option value="Mon" {% if selected_day == "Mon" %}selected{% endif %}>Monday</option>
+            <option value="Tue" {% if selected_day == "Tue" %}selected{% endif %}>Tuesday</option>
+            <option value="Wed" {% if selected_day == "Wed" %}selected{% endif %}>Wednesday</option>
+            <option value="Thu" {% if selected_day == "Thu" %}selected{% endif %}>Thursday</option>
+            <option value="Fri" {% if selected_day == "Fri" %}selected{% endif %}>Friday</option>
+            <option value="Sat" {% if selected_day == "Sat" %}selected{% endif %}>Saturday</option>
+        </select>
+
         <button type="submit">Filter</button>
     </form>
 </div>
@@ -112,6 +144,7 @@
     <thead>
         <tr>
             <th>Week</th>
+            <th>Day</th>
             <th>Class</th>
             <th>Subject</th>
             <th>Status</th>
@@ -124,6 +157,7 @@
         {% for lesson in lessons %}
         <tr>
             <td>{{ lesson.week.number }}</td>
+            <td>{{ lesson.timetable.day }}</td>
             <td>
                 {% for c in lesson.timetable.class_groups.all %}
                     {{ c.name }}{% if not forloop.last %}, {% endif %}
@@ -143,9 +177,24 @@
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7">No lessons found.</td></tr>
+        <tr><td colspan="8">No lessons found.</td></tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Pagination -->
+{% if lessons.has_other_pages %}
+<div class="pagination">
+    {% if lessons.has_previous %}
+        <a href="?page={{ lessons.previous_page_number }}{% if selected_week %}&week={{ selected_week }}{% endif %}{% if selected_term %}&term={{ selected_term }}{% endif %}{% if selected_class %}&class_group={{ selected_class }}{% endif %}{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_day %}&day={{ selected_day }}{% endif %}">Previous</a>
+    {% endif %}
+    
+    <span>Page {{ lessons.number }} of {{ lessons.paginator.num_pages }}</span>
+    
+    {% if lessons.has_next %}
+        <a href="?page={{ lessons.next_page_number }}{% if selected_week %}&week={{ selected_week }}{% endif %}{% if selected_term %}&term={{ selected_term }}{% endif %}{% if selected_class %}&class_group={{ selected_class }}{% endif %}{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_day %}&day={{ selected_day }}{% endif %}">Next</a>
+    {% endif %}
+</div>
+{% endif %}
 
 {% endblock %}

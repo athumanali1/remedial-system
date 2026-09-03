@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.management import call_command
 
 from django.db import models, IntegrityError
-from django.db.models import Sum, F, Count, ExpressionWrapper, FloatField
+from django.db.models import Sum, F, Count, ExpressionWrapper, FloatField, Case, When, Value, IntegerField
 from decimal import Decimal, InvalidOperation
 import os
 
@@ -1015,6 +1015,7 @@ def teacher_dashboard(request):
     selected_class = request.GET.get("class_group")
     selected_subject = request.GET.get("subject")
     selected_term = request.GET.get("term")
+    selected_day = request.GET.get("day")
 
     # Base queryset for lessons of this teacher
     lessons = LessonRecord.objects.filter(timetable__teacher=teacher)
@@ -1033,6 +1034,29 @@ def teacher_dashboard(request):
         lessons = lessons.filter(timetable__class_groups__id=selected_class)
     if selected_subject:
         lessons = lessons.filter(timetable__subject__id=selected_subject)
+    if selected_day:
+        lessons = lessons.filter(timetable__day=selected_day)
+
+    # Sort by day order then time
+    day_order = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5}
+    lessons = lessons.annotate(
+        day_order=Case(
+            *[When(timetable__day=day, then=Value(order)) for day, order in day_order.items()],
+            default=Value(99),
+            output_field=IntegerField()
+        )
+    ).order_by('day_order', 'timetable__start_time')
+
+    # Pagination - show 15 lessons per page
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    paginator = Paginator(lessons, 15)
+    page = request.GET.get('page', 1)
+    try:
+        lessons_page = paginator.page(page)
+    except PageNotAnInteger:
+        lessons_page = paginator.page(1)
+    except EmptyPage:
+        lessons_page = paginator.page(paginator.num_pages)
 
     # Statistics
     total_lessons = lessons.count()
@@ -1076,7 +1100,7 @@ def teacher_dashboard(request):
 
     context = {
         "teacher": teacher,
-        "lessons": lessons,
+        "lessons": lessons_page,
         "weeks": weeks,
         "terms": terms,
         "classes": classes,
@@ -1088,6 +1112,7 @@ def teacher_dashboard(request):
         "selected_term": selected_term,
         "selected_class": selected_class,
         "selected_subject": selected_subject,
+        "selected_day": selected_day,
         "total_lessons": total_lessons,
         "attended": attended,
         "not_attended": not_attended,
