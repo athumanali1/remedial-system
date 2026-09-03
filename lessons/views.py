@@ -1037,28 +1037,7 @@ def teacher_dashboard(request):
     if selected_day:
         lessons = lessons.filter(timetable__day=selected_day)
 
-    # Sort by day order then time
-    day_order = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5}
-    lessons = lessons.annotate(
-        day_order=Case(
-            *[When(timetable__day=day, then=Value(order)) for day, order in day_order.items()],
-            default=Value(99),
-            output_field=IntegerField()
-        )
-    ).order_by('day_order', 'timetable__start_time')
-
-    # Pagination - show 15 lessons per page
-    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-    paginator = Paginator(lessons, 15)
-    page = request.GET.get('page', 1)
-    try:
-        lessons_page = paginator.page(page)
-    except PageNotAnInteger:
-        lessons_page = paginator.page(1)
-    except EmptyPage:
-        lessons_page = paginator.page(paginator.num_pages)
-
-    # Statistics
+    # Statistics (calculate on filtered queryset before sorting/pagination)
     total_lessons = lessons.count()
     attended = lessons.filter(status__iexact="Attended").count()
     not_attended = lessons.filter(status__iexact="Not Attended").count()
@@ -1074,6 +1053,23 @@ def teacher_dashboard(request):
     total_unpaid_amount = lessons.filter(payment_status__iexact="Unpaid").aggregate(
         Sum("amount")
     )["amount__sum"] or 0
+
+    # Sort by day order then time (simplified without annotation)
+    day_order = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5}
+    lessons_list = list(lessons)
+    lessons_list.sort(key=lambda x: (day_order.get(x.timetable.day, 99), x.timetable.start_time))
+    lessons = lessons_list
+
+    # Pagination - show 15 lessons per page
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    paginator = Paginator(lessons, 15)
+    page = request.GET.get('page', 1)
+    try:
+        lessons_page = paginator.page(page)
+    except PageNotAnInteger:
+        lessons_page = paginator.page(1)
+    except EmptyPage:
+        lessons_page = paginator.page(paginator.num_pages)
 
     # Lists for filters - only filter weeks by academic year
     weeks_qs = Week.objects.all()
