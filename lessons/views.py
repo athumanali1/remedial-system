@@ -257,6 +257,13 @@ def remedial_stats(request):
         total_paid_amount += agg["paid_amount"]
         total_unpaid_amount += agg["unpaid_amount"]
 
+    # Calculate percentages for global summary
+    attended_pct = round(100 * attended / total, 1) if total else 0
+    not_attended_pct = round(100 * not_attended / total, 1) if total else 0
+    pending_pct = round(100 * pending / total, 1) if total else 0
+    paid_pct = round(100 * paid / total, 1) if total else 0
+    unpaid_pct = round(100 * unpaid / total, 1) if total else 0
+
     # Per-teacher aggregation from logical lessons
     per_teacher_counters = {}
     for agg in logical_map.values():
@@ -322,6 +329,8 @@ def remedial_stats(request):
                 "attended_pct": pct(c["attended"]),
                 "not_attended_pct": pct(c["not_attended"]),
                 "pending_pct": pct(c["pending"]),
+                "paid_pct": pct(c["paid"]),
+                "unpaid_pct": pct(c["unpaid"]),
             }
         )
 
@@ -345,8 +354,13 @@ def remedial_stats(request):
         "attended": attended,
         "not_attended": not_attended,
         "pending": pending,
+        "attended_pct": attended_pct,
+        "not_attended_pct": not_attended_pct,
+        "pending_pct": pending_pct,
         "paid": paid,
         "unpaid": unpaid,
+        "paid_pct": paid_pct,
+        "unpaid_pct": unpaid_pct,
         "total_paid_amount": total_paid_amount,
         "total_unpaid_amount": total_unpaid_amount,
         "per_teacher_list": per_teacher_list,

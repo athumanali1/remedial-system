@@ -44,11 +44,11 @@
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
   <div class="card"><strong>Total Lessons:</strong> {{ total }}</div>
-  <div class="card"><strong>Attended:</strong> {{ attended }}</div>
-  <div class="card"><strong>Not Attended:</strong> {{ not_attended }}</div>
-  <div class="card"><strong>Pending:</strong> {{ pending }}</div>
-  <div class="card"><strong>Paid:</strong> {{ paid }}</div>
-  <div class="card"><strong>Unpaid:</strong> {{ unpaid }}</div>
+  <div class="card"><strong>Attended:</strong> {{ attended }} ({{ attended_pct }}%)</div>
+  <div class="card"><strong>Not Attended:</strong> {{ not_attended }} ({{ not_attended_pct }}%)</div>
+  <div class="card"><strong>Pending:</strong> {{ pending }} ({{ pending_pct }}%)</div>
+  <div class="card"><strong>Paid:</strong> {{ paid }} ({{ paid_pct }}%)</div>
+  <div class="card"><strong>Unpaid:</strong> {{ unpaid }} ({{ unpaid_pct }}%)</div>
   <div class="card"><strong>Total Paid Amount:</strong> {{ total_paid_amount }}</div>
   <div class="card"><strong>Total Unpaid Amount:</strong> {{ total_unpaid_amount }}</div>
 </div>
@@ -77,8 +77,8 @@
         <td>{{ row.attended }} ({{ row.attended_pct }}%)</td>
         <td>{{ row.not_attended }} ({{ row.not_attended_pct }}%)</td>
         <td>{{ row.pending }} ({{ row.pending_pct }}%)</td>
-        <td>{{ row.paid }}</td>
-        <td>{{ row.unpaid }}</td>
+        <td>{{ row.paid }} ({{ row.paid_pct }}%)</td>
+        <td>{{ row.unpaid }} ({{ row.unpaid_pct }}%)</td>
         <td>{{ row.paid_amount }}</td>
         <td>{{ row.unpaid_amount }}</td>
         <td>
