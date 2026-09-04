@@ -6,6 +6,9 @@
     <meta charset="UTF-8">
     <title>{% block title %}Remedial System{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'lessons/css/dashboard.css' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2575fc">
 </head>
 <body>
         {% if request.GET.print == '1' %}
@@ -89,6 +92,49 @@
         {% block content %}{% endblock %}
     </div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- PWA Install Prompt -->
+    <div id="install-prompt" style="display:none; position:fixed; bottom:20px; left:20px; z-index:9999; background:#2575fc; color:white; padding:16px 20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.3); max-width:300px;">
+        <div style="font-weight:600; margin-bottom:8px;">Install App</div>
+        <div style="font-size:14px; margin-bottom:12px; opacity:0.9;">Install this app on your device for quick access.</div>
+        <div style="display:flex; gap:8px;">
+            <button id="install-btn" style="background:white; color:#2575fc; border:none; padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer;">Install</button>
+            <button id="dismiss-btn" style="background:transparent; color:white; border:1px solid rgba(255,255,255,0.5); padding:8px 16px; border-radius:6px; cursor:pointer;">Later</button>
+        </div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        const installPrompt = document.getElementById('install-prompt');
+        const installBtn = document.getElementById('install-btn');
+        const dismissBtn = document.getElementById('dismiss-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installPrompt.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installPrompt.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        dismissBtn.addEventListener('click', () => {
+            installPrompt.style.display = 'none';
+        });
+
+        // Hide prompt if already installed
+        window.addEventListener('appinstalled', () => {
+            installPrompt.style.display = 'none';
+        });
+    </script>
 
 </body>
 </html>
