@@ -75,9 +75,9 @@
   <!-- Summary -->
   <div class="cards-container">
     <div class="card"><h3>Total</h3><p>{{ total }}</p></div>
-    <div class="card"><h3>Attended</h3><p>{{ attended }}</p></div>
-    <div class="card"><h3>Not Attended</h3><p>{{ not_attended }}</p></div>
-    <div class="card"><h3>Pending</h3><p>{{ pending }}</p></div>
+    <div class="card"><h3>Attended</h3><p>{{ attended }} ({{ attended_pct|floatformat:0 }}%)</p></div>
+    <div class="card"><h3>Not Attended</h3><p>{{ not_attended }} ({{ not_attended_pct|floatformat:0 }}%)</p></div>
+    <div class="card"><h3>Pending</h3><p>{{ pending }} ({{ pending_pct|floatformat:0 }}%)</p></div>
   </div>
 </div>
 

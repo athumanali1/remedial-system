@@ -445,6 +445,11 @@ def deputy_normal_stats(request):
     not_attended = sum(1 for s in logical_map.values() if str(s).lower() == "not attended".lower())
     pending = sum(1 for s in logical_map.values() if str(s).lower() == "pending".lower())
 
+    # Calculate percentages for global summary
+    attended_pct = round(100 * attended / total, 1) if total else 0
+    not_attended_pct = round(100 * not_attended / total, 1) if total else 0
+    pending_pct = round(100 * pending / total, 1) if total else 0
+
     # Per-teacher breakdown based on logical lessons
     per_teacher_counters = {}
     for (teacher_id, _day, _st, _et, _subj_id), status in logical_map.items():
@@ -506,9 +511,9 @@ def deputy_normal_stats(request):
         "attended": attended,
         "not_attended": not_attended,
         "pending": pending,
-        "attended_pct": round(100 * attended / total, 1) if total else 0,
-        "not_attended_pct": round(100 * not_attended / total, 1) if total else 0,
-        "pending_pct": round(100 * pending / total, 1) if total else 0,
+        "attended_pct": attended_pct,
+        "not_attended_pct": not_attended_pct,
+        "pending_pct": pending_pct,
         "per_teacher_list": per_teacher_list,
     }
 
@@ -941,6 +946,11 @@ def teacher_normal_stats(request):
     not_attended = sum(1 for r in rows if str(r["status"]).lower() == "not attended".lower())
     pending = sum(1 for r in rows if str(r["status"]).lower() == "pending".lower())
 
+    # Calculate percentages
+    attended_pct = (attended / total * 100) if total > 0 else 0
+    not_attended_pct = (not_attended / total * 100) if total > 0 else 0
+    pending_pct = (pending / total * 100) if total > 0 else 0
+
     weeks = weeks_qs  # Use filtered weeks based on academic year
 
     context = {
@@ -956,6 +966,9 @@ def teacher_normal_stats(request):
         "attended": attended,
         "not_attended": not_attended,
         "pending": pending,
+        "attended_pct": attended_pct,
+        "not_attended_pct": not_attended_pct,
+        "pending_pct": pending_pct,
         "is_deputy": request.user.groups.filter(name='Deputy').exists(),
     }
 
@@ -1062,6 +1075,13 @@ def teacher_dashboard(request):
         Sum("amount")
     )["amount__sum"] or 0
 
+    # Calculate percentages
+    attended_pct = (attended / total_lessons * 100) if total_lessons > 0 else 0
+    not_attended_pct = (not_attended / total_lessons * 100) if total_lessons > 0 else 0
+    pending_pct = (pending / total_lessons * 100) if total_lessons > 0 else 0
+    paid_pct = (paid / total_lessons * 100) if total_lessons > 0 else 0
+    unpaid_pct = (unpaid / total_lessons * 100) if total_lessons > 0 else 0
+
     # Sort by day order then time (simplified without annotation)
     day_order = {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4, 'Sat': 5}
     lessons_list = list(lessons)
@@ -1121,8 +1141,13 @@ def teacher_dashboard(request):
         "attended": attended,
         "not_attended": not_attended,
         "pending": pending,
+        "attended_pct": attended_pct,
+        "not_attended_pct": not_attended_pct,
+        "pending_pct": pending_pct,
         "paid": paid,
         "unpaid": unpaid,
+        "paid_pct": paid_pct,
+        "unpaid_pct": unpaid_pct,
         "total_paid_amount": total_paid_amount,
         "total_unpaid_amount": total_unpaid_amount,
     }

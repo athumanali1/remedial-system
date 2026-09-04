@@ -128,12 +128,12 @@
 <!-- Summary Cards -->
 <div class="cards-container">
     <div class="card"><h3>Total Lessons</h3><p>{{ total_lessons }}</p></div>
-    <div class="card"><h3>Attended</h3><p>{{ attended }}</p></div>
-    <div class="card"><h3>Not Attended</h3><p>{{ not_attended }}</p></div>
-    <div class="card"><h3>Pending</h3><p>{{ pending }}</p></div>
+    <div class="card"><h3>Attended</h3><p>{{ attended }} ({{ attended_pct|floatformat:0 }}%)</p></div>
+    <div class="card"><h3>Not Attended</h3><p>{{ not_attended }} ({{ not_attended_pct|floatformat:0 }}%)</p></div>
+    <div class="card"><h3>Pending</h3><p>{{ pending }} ({{ pending_pct|floatformat:0 }}%)</p></div>
    
-    <div class="card"><h3>Paid Lessons</h3><p>{{ paid }}</p></div>
-    <div class="card"><h3>Unpaid Lessons</h3><p>{{ unpaid }}</p></div>
+    <div class="card"><h3>Paid Lessons</h3><p>{{ paid }} ({{ paid_pct|floatformat:0 }}%)</p></div>
+    <div class="card"><h3>Unpaid Lessons</h3><p>{{ unpaid }} ({{ unpaid_pct|floatformat:0 }}%)</p></div>
     <div class="card"><h3>Total Paid Amount</h3><p>${{ total_paid_amount|floatformat:2 }}</p></div>
     <div class="card"><h3>Total Unpaid Amount</h3><p>${{ total_unpaid_amount|floatformat:2 }}</p></div>
 </div>
