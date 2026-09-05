@@ -1289,12 +1289,15 @@ def _fixed_timetable_structure():
 def _fixed_remedial_structure():
     """Return fixed remedial days and time slots.
 
-    Structure (you provided):
+    Structure (simplified):
 
     - Monday–Friday:
-      * 16:30–17:30 (4:30pm–5:30pm)
-      * 19:00–20:00 (7:00pm–8:00pm)
-      * 13:30–14:20 (1:30pm–2:20pm)
+      * 05:00–06:00
+      * 06:00–07:00
+      * 07:00–08:00
+      * 08:00–09:00
+      * 09:00–10:00
+      * 13:30–14:20
 
     - Saturday:
       * 07:00–08:00
@@ -1306,12 +1309,12 @@ def _fixed_remedial_structure():
 
     days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     slots = [
-        (time(16, 30), time(17, 30)),  # evening 1 (Mon–Fri)
-        (time(19, 0), time(20, 0)),    # evening 2 (Mon–Fri)
+        (time(5, 0), time(6, 0)),      # early morning 1 (Mon–Fri)
+        (time(6, 0), time(7, 0)),      # early morning 2 (Mon–Fri)
+        (time(7, 0), time(8, 0)),      # morning 1 (Mon–Fri, Sat)
+        (time(8, 0), time(9, 0)),      # morning 2 (Mon–Fri, Sat)
+        (time(9, 0), time(10, 0)),     # morning 3 (Mon–Fri, Sat)
         (time(13, 30), time(14, 20)),  # lunchtime (Mon–Fri)
-        (time(7, 0), time(8, 0)),      # Saturday morning 1
-        (time(8, 0), time(9, 0)),      # Saturday morning 2
-        (time(9, 0), time(10, 0)),     # Saturday morning 3
     ]
 
     return days, slots
