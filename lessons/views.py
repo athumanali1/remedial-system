@@ -1303,6 +1303,7 @@ def _fixed_remedial_structure():
       * 07:00–08:00
       * 08:00–09:00
       * 09:00–10:00
+      * 14:00–15:00
     """
 
     from datetime import time
@@ -1315,6 +1316,7 @@ def _fixed_remedial_structure():
         (time(8, 0), time(9, 0)),      # morning 2 (Mon–Fri, Sat)
         (time(9, 0), time(10, 0)),     # morning 3 (Mon–Fri, Sat)
         (time(13, 30), time(14, 20)),  # lunchtime (Mon–Fri)
+        (time(14, 0), time(15, 0)),     # Saturday afternoon
     ]
 
     return days, slots
